@@ -12,7 +12,7 @@ int spawn(void* routine, int num_arg, ...){
 		return EARG;
 	}
 
-	void* (*start_routine)(...) = (void*(*)(...))routine;
+	void* (*start_routine)() = (void*(*)())routine;
 	/*form a continuation*/
 
 }

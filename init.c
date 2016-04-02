@@ -2,10 +2,11 @@
 * This file describe the initialization of Gregor's environment
 */
 
-#include "thread.h"
 #include <unistd.h>
 #include <stdlib.h>
 #include "gregor_error.h"
+#include "thread.h"
+#include "init.h"
 
 static int NUM_PROCESSOR;
 #define NUM_WORKER (NUM_PROCESSOR*2-1) //minus one because we include the calling thread

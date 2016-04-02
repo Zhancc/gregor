@@ -24,7 +24,7 @@ struct mstate{
 
 
 /* the register global to store the tid. linked program must avoid using this register in compilation*/ 
-register int tid asm("ebx"); 
+register int tid __asm__("ebx"); 
 
 /*global state data structure end*/
 
@@ -35,9 +35,8 @@ void __gregor_do_work(int threadId);
 
 
 /*wrapper of pthread begin*/
-void Pthread_create(pthread_t *restrict thread,
-		              const pthread_attr_t *restrict attr,
-		              void *(*start_routine)(void*), void *restrict arg);
+void Pthread_create(pthread_t *restrict thread, const pthread_attr_t *restrict attr, void *(*start_routine)(void*), void *restrict arg);
+
 pthread_t Pthread_self(void);
 
 /*wrapper of pthread end*/
