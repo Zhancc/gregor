@@ -56,5 +56,3 @@ int spawn(void* routine, int num_arg, ...){
 		);
 
 }
-
-

@@ -35,9 +35,8 @@ void __gregor_do_work(int threadId);
 
 
 /*wrapper of pthread begin*/
-void Pthread_create(pthread_t *restrict thread,
-		              const pthread_attr_t *restrict attr,
-		              void *(*start_routine)(void*), void *restrict arg);
+void Pthread_create(pthread_t *restrict thread, const pthread_attr_t *restrict attr, void *(*start_routine)(void*), void *restrict arg);
+
 pthread_t Pthread_self(void);
 
 /*wrapper of pthread end*/

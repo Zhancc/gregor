@@ -8,9 +8,6 @@
 #define EARG -1
 
 
-void __gregor_error(char* s){
-	fprintf(stderr, "%s\n", s );
-	exit(-1);
-}
+void __gregor_error(char* s);
 
 #endif
