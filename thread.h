@@ -19,12 +19,12 @@ typedef struct wstate{
 
 struct mstate{
 	wstate *worker_info;
-	
+
 } mstate;
 
 
 /* the register global to store the tid. linked program must avoid using this register in compilation*/ 
-register int tid asm("ebx"); 
+register int tid __asm__("ebx"); 
 
 /*global state data structure end*/
 
