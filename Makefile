@@ -7,7 +7,7 @@ CFLAGS=-m32 -c -Wall -std=gnu99
 LDFLAGS=-m32 -shared -pthread
 
 gregor.so: gregor_error.o gregor.o thread.o
-	$(CC) gregor_error.o thread.o gregor.o -o gregor $(LDFLAGS)
+	$(CC) gregor_error.o thread.o gregor.o -o gregor.so $(LDFLAGS)
 
 gregor.o: gregor.c
 	$(CC) $(CFLAGS) gregor.c
@@ -19,4 +19,4 @@ gregor_error.o: gregor_error.c
 	$(CC) $(CFLAGS) gregor_error.c
 
 clean:
-	-rm *o gregor
+	-rm  *o

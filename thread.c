@@ -15,6 +15,8 @@ void* __gregor_worker_init(void* threadid){
 	long tid = (long)threadid;
 
 	__gregor_do_work(tid);
+
+	
 }
 
 void __gregor_do_work(int threadId){
