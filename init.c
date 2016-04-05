@@ -26,9 +26,9 @@ void _init(void){
 		mstate.worker_info[i].queue_head = mstate.worker_info[i].queue_rear = 0;
 	}
 
+	/* initialize the master thread */
 	mstate.worker_info[0].threadId = Pthread_self();
 	mstate.worker_info[0].queue_head = mstate.worker_info[0].queue_rear = 0;
-
 	tid = 0;
 }
 
