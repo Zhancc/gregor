@@ -1,8 +1,9 @@
 #ifndef GREGOR_H
 #define GREGOR_H
 
+#include "thread.h"
 int spawn(void* routine, int num_arg, ...);
 void sync();
-void create_job(void* ret, void* routine, int num_arg, ...);
+jcb* create_job(void* ret, void* routine, int num_arg, ...);
 int add_job(jcb* job);
 #endif

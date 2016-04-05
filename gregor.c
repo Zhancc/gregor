@@ -1,6 +1,7 @@
 #include <stdarg.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include <string.h>
 #include "gregor.h"
 #include "gregor_error.h"
 #include "thread.h"
@@ -34,9 +35,9 @@ jcb* create_job(void* ret, void* routine, int num_arg, ...){
 	for( int i = 0 ; i < num_arg; i++){
 		int size = va_arg(varlist, int);
 		switch(size){
-			1:
-			2:
-			4:
+			case 1:
+			case 2:
+			case 4:
 				sum+=4;
 				break;
 			default:
@@ -44,22 +45,22 @@ jcb* create_job(void* ret, void* routine, int num_arg, ...){
 				break;
 		}
 	}
-	top = (char*)top - sum;
+	top = (void*)((char*)top - sum);
 
 	#warning: we rely on the fact that the arguments are passed by stack and stack grows downwards
 	if(num_arg > 0)
 		memcpy(top,&num_arg + num_arg + 1,sum);
 
-	top = (char*)top - sum;
+	top = (void*)((char*)top - sum);
 	top--;
-	*top = (int*)ret;
+	*(int**)top = (int*)ret;
 	job->esp = (void*)top;
 	return job;
 }
 
 
 int add_job(jcb* job){
-
+	return 1;
 }
 
 #if 0
