@@ -1,59 +1,74 @@
-# include "asm.h"
-
 .globl spawn
 spawn:
 	call	create_job
 	pushl	%eax
 	call 	add_job
+	popl	%eax
+	call 	reschedule
+	ret
+
+.globl reschedule, reschedule_from_pthread
+reschedule:
 	subl 	$512, %esp
 	fxsave   (%esp)
+reschedule_from_pthread:
 	pushf
 	pushl 	%ecx
 	pushl 	%edx
 	pushl	%ebp
 	pushl	%esi
 	pushl 	%edi
-	pushl 	%esp
-	call 	reschedule
+	pushl 	%esp #push esp before this's executed
+	call   do_reschedule
+	#reschedule should never retrun
 1:	
 	jmp 	1b
 
+.globl gregor_main
+gregor_main:
+	pushl %esp
+	call do_gregor_main
+	popl %eax
+	ret
+
+.globl swicth_free_current
+swicth_free_current:
+	movl 4(%esp), %esp
+	call free_current
+	popl %edi
+	popl %esi
+	popl %ebp
+	popl %edx
+	popl %ecx
+	popf
+	ret
+	
 
 .globl switch_context
 switch_context:	
-	# movl 	4(%esp), %ecx
-	# movl 	(%ecx), %eax
-	# pushf
-	# addl	$24, %eax #edx,ebp,esi,edi,eax,eflag
-	# addl 	$512, %eax #
-	# pushl 	%eax
-	# call 	internal_malloc
-	# movl 	%eax, %edx
-	# popl 	%eax
-
-
-	# addl 	%eax, %ecx
-	# movl 	(%esp), %eax
-	# movl	%eax, (%ecx)
-
 	movl 4(%esp), %esp
-	# popa
+	popl %edi
+	popl %esi
+	popl %ebp
+	popl %edx
+	popl %ecx
+	popf
+	fxrstor (%esp)
+	addl $512, %esp
+	jmp after_switch_to_next
+swicth_context_to_new:
+	movl 4(%esp), %esp
+after_switch_to_next:
+	call do_reschedule_reset_current
 	ret
 
 # END(switch_context)
 
-# ENTRY(save_context)	
-.globl save_context
-save_context:
 
-	movl 4(%esp), %eax
-	pusha 
-	movl %esp, (%eax)
-	popa
-	movl 8(%esp), %eax
-	popl %eax
-	popl %eax
-	popl %eax
-	jmp *%eax
-
-# END(save_context)
+.globl cleanup
+cleanup:
+	pushl %edx
+	pushl %eax
+	call do_cleanup
+1:  #cleanup should never return
+	jmp 	1b

@@ -9,7 +9,7 @@
 #include "init.h"
 
 static int NUM_PROCESSOR;
-#define NUM_WORKER (NUM_PROCESSOR*2-1) //minus one because we include the calling thread
+#define NUM_WORKER (NUM_PROCESSOR*2) //minus one because we include the calling thread
 
 
 void _init(void){
@@ -19,18 +19,15 @@ void _init(void){
 	}
 	
 	/* init mstate*/
-	mstate.worker_info = (wstate*)malloc((NUM_WORKER+1)*sizeof(wstate));
+	mstate.worker_info = (wstate*)malloc((NUM_WORKER)*sizeof(wstate));
 
-	for(int i = 1 ; i < NUM_WORKER+1; i++){
+	for(int i = 1 ; i < NUM_WORKER ; i++){
 		Pthread_create(&(mstate.worker_info[i].threadId),NULL,__gregor_worker_init, (void*)(long)i);
-		mstate.worker_info[i].queue_head = mstate.worker_info[i].queue_rear = 0;
 	}
 
-	/* initialize the master thread */
-	mstate.worker_info[0].threadId = Pthread_self();
-	mstate.worker_info[0].queue_head = mstate.worker_info[0].queue_rear = 0;
-	tid = 0;
 }
+
+
 
 void _fini(void){
 	free(mstate.worker_info);

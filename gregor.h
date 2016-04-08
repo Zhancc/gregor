@@ -2,8 +2,7 @@
 #define GREGOR_H
 
 #include "thread.h"
-int spawn(void* routine, int num_arg, ...);
-void sync();
-jcb* create_job(void* ret, void* routine, int num_arg, ...);
-int add_job(jcb* job);
+int spawn(enum return_type rt,void* return_ptr, void* routine, int num_arg, ...);
+int __gregor_sync();
+
 #endif

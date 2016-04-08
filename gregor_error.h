@@ -9,5 +9,5 @@
 
 
 void __gregor_error(char* s);
-
+void __gregor_panic(char* s);
 #endif
