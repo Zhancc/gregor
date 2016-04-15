@@ -73,7 +73,7 @@ void __gregor_do_work_loop(){
 		if(next==NULL){
 			__gregor_panic("pick a NULL work in __gregor_do_work_loop");
 		}
-		CURRENT_WORKER->next_job = jcb;
+		CURRENT_WORKER->next_job = next;
 		reschedule_from_pthread();
 
 	}
@@ -160,12 +160,14 @@ void do_cleanup(unsigned int eax, unsigned int edx){
 			__gregor_panic("join_counter incorrect");
 		}
 		/*iteratively update the join counter of predescendents*/
+		/*
 		while(!(j = j->parent)&& (ret == 1) ){
 		 ret = __sync_fetch_and_sub(&(j->join_counter), 1);
  		 if(ret<=0){
 		 __gregor_panic("join_counter incorrect");
 		 }
 		}
+		*/
 
 	}else{
 		/*invariant: at this point, no other threads should be working*/
