@@ -116,7 +116,7 @@ struct mstate{
 	Deque *deque;
 } mstate;
 
-Node* Node_new(int value);
+Node* Node_new(jcb* job);
 Deque* Deque_new();
 void AddNodeToTail(Deque* deque, jcb* job);
 Node* GetNodeFromTail(Deque* deque);

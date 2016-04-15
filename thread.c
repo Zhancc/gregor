@@ -187,8 +187,8 @@ Deque* Deque_new() {
     Deque *p = (Deque *)malloc(sizeof(Deque));
     p->head_node = NULL;
     p->tail_node = NULL;
-    pthread_cond_init(&queue_cond, NULL);
-    pthread_mutex_init(&queue_lock, NULL);
+    pthread_cond_init(&p->queue_cond, NULL);
+    pthread_mutex_init(&p->queue_lock, NULL);
     return p;
 }
 
@@ -232,19 +232,19 @@ Node* GetNodeFromHead(Deque *deque) {
     return head;
 }
 
-void print_list_from_head(Node* head) {
-    while (head != NULL) {
-        printf("%d\n", head->value);
-        head = head->next;
-    }
-}
+// void print_list_from_head(Node* head) {
+//     while (head != NULL) {
+//         printf("%d\n", head->value);
+//         head = head->next;
+//     }
+// }
 
-void print_list_from_tail(Node* tail) {
-    while (tail != NULL) {
-        printf("%d\n", tail->value);
-        tail = tail->prev;
-    }
-}
+// void print_list_from_tail(Node* tail) {
+//     while (tail != NULL) {
+//         printf("%d\n", tail->value);
+//         tail = tail->prev;
+//     }
+// }
 
 int isEmpty(Deque *deque) {
     return deque->head_node == NULL;
