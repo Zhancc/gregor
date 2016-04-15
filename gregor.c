@@ -76,10 +76,10 @@ jcb* create_job(void* dummy_ret, enum return_type rt, void* return_ptr, void* ro
 
 #warning: add the job to some queue to be implemented
 void add_job(jcb* job){
-	pthread_mutex_lock(&mstate.deque->lock);
+	pthread_mutex_lock(&mstate.deque->queue_lock);
 	AddNodeToTail(mstate.deque, job);
 	mstate.deque->
-	pthread_mutex_unlock(&mstate.deque->lock);
+	pthread_mutex_unlock(&mstate.deque->queue_lock);
 	return ;
 }
 
