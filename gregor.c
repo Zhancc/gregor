@@ -5,6 +5,7 @@
 #include "gregor.h"
 #include "gregor_error.h"
 #include "thread.h"
+#include "sched.h"
 
 
 /*
@@ -74,19 +75,39 @@ jcb* create_job(void* dummy_ret, enum return_type rt, void* return_ptr, void* ro
 }
 
 
-#warning: add the job to some queue to be implemented
-void add_job(jcb* job){
+#warning: add the job to some queue to be refined
+void add_job_tail(jcb* job){
 	pthread_mutex_lock(&mstate.deque->queue_lock);
 	AddNodeToTail(mstate.deque, job);
 	pthread_mutex_unlock(&mstate.deque->queue_lock);
 	return ;
 }
 
+#warning: add the job to some queue to be refined
+void add_job_head(jcb* job){
+	pthread_mutex_lock(&mstate.deque->queue_lock);
+	AddNodeToHead(mstate.deque, job);
+	pthread_mutex_unlock(&mstate.deque->queue_lock);
+	return ;
+}
+
+
+void set_next_job(jcb* job){
+	CURRENT_WORKER->next_job = job;
+}
+
 /* wait until all the descendents complete */
-#warning: refinement: currently just yield the cpu and sleep
+#warning: refinement: currently just enqueue the current work
 int __gregor_sync(){
-	while(CURRENT->join_counter){
-		usleep(1);
+
+	jcb* job = pick_work();
+	if(CURRENT->join_counter){
+		set_next_job(job);
+		while(CURRENT->join_counter)
+			reschedule();
+	}else{
+		add_job_head(job);
 	}
+	
 	return 1;
 }

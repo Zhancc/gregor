@@ -119,6 +119,7 @@ struct mstate{
 Node* Node_new(jcb* job);
 Deque* Deque_new();
 void AddNodeToTail(Deque* deque, jcb* job);
+void AddNodeToHead(Deque* deque, jcb* job);
 Node* GetNodeFromTail(Deque* deque);
 Node* GetNodeFromHead(Deque *deque);
 int isEmpty(Deque *deque);
@@ -131,12 +132,13 @@ void gregor_main(int* return_ptr, int (*routine)(int, char**),int argc, char** a
 void do_gregor_main(void* p_esp, void* dummy_ret, int* return_ptr, int (*routine)(int, char**),int argc, char** argv );
 void* do_gregor_main_init(void* ptr);
 void* __gregor_worker_init(void* threadid);
-static void init_data_structure();
+void init_data_structure();
 void __gregor_do_work_loop();
 void cleanup();
 void do_cleanup(unsigned int eax, unsigned int edx);
 jcb* create_job(void* ret, enum return_type rt, void* return_ptr, void* routine, int num_arg, ...);
-void add_job(jcb* job);
+void add_job_tail(jcb* job);
+void add_job_head(jcb* job);
 /*wrapper of pthread begin*/
 void Pthread_create(pthread_t *restrict thread, const pthread_attr_t *restrict attr, void *(*start_routine)(void*), void *restrict arg);
 

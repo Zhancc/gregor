@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include "thread.h"
 #include "gregor.h"
 #include "sched.h"
@@ -39,9 +40,8 @@ void do_gregor_main(void* p_esp, void* dummy_ret, int* return_ptr, int (*routine
 	_fini();
 }
 
-static void init_data_structure(){
+void init_data_structure(){
 	CURRENT_WORKER->cur = CURRENT_WORKER->next_job = NULL;
-
 }
 /*this function should not return, the threads should be blocked in loop and killed by master thread*/
 void* do_gregor_main_init(void* ptr){
@@ -49,7 +49,7 @@ void* do_gregor_main_init(void* ptr){
 	tid = 0;
 	init_data_structure();
 	jcb* main_job = create_job(NULL,INT,ma->return_ptr,ma->routine, 2 ,sizeof(int),sizeof(char**), ma->argc, ma->argv);
-	add_job(main_job);
+	add_job_tail(main_job);
 	__gregor_do_work_loop();
 	return NULL;
 }
@@ -149,21 +149,17 @@ void do_cleanup(unsigned int eax, unsigned int edx){
 				break;
 		}
 	}
-	__gregor_sync();
+	#warning: refinement: currently just yield the processor
+	while(CURRENT->join_counter){
+		usleep(1);
+	}	
+
 	if(CURRENT->parent){
 		int ret;
 		jcb* j = CURRENT->parent;
 		ret = __sync_fetch_and_sub(&(j->join_counter), 1);
 		if(ret<=0){
 			__gregor_panic("join_counter incorrect");
-		}
-		/*iteratively update the join counter of predescendents*/
-		#warning:wrong
-		while(!(j = j->parent)&& (ret == 1) ){
-		 ret = __sync_fetch_and_sub(&(j->join_counter), 1);
- 		 if(ret<=0){
-		 __gregor_panic("join_counter incorrect");
-		 }
 		}
 	}else{
 		/*invariant: at this point, no other threads should be working*/
@@ -204,6 +200,11 @@ void AddNodeToTail(Deque* deque, jcb* job) {
         deque->tail_node = node;
     }
 }
+
+void AddNodeToHead(Deque* deque, jcb* job) {
+!!!!!
+}
+
 
 Node* GetNodeFromTail(Deque* deque) {
     if (deque->tail_node == NULL) return NULL;

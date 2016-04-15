@@ -44,7 +44,7 @@ void do_reschedule_reset_current(){
 	CURRENT = CURRENT_WORKER->next_job;
 	CURRENT_WORKER->next_job = NULL;
 	if(prev_cur){
-		add_job(prev_cur);
+		add_job_tail(prev_cur);
 	}
 	return;
 

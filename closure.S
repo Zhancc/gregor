@@ -2,7 +2,7 @@
 spawn:
 	call	create_job
 	pushl	%eax
-	call 	add_job
+	call 	set_next_job
 	popl	%eax
 	call 	reschedule
 	ret
