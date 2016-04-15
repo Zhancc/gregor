@@ -6,6 +6,7 @@ spawn:
 	popl	%eax
 	call 	reschedule
 	ret
+.size spawn, .-spawn
 
 .globl reschedule, reschedule_from_pthread
 reschedule:
@@ -23,6 +24,8 @@ reschedule_from_pthread:
 	#reschedule should never retrun
 1:	
 	jmp 	1b
+.size reschedule, .-reschedule
+.size reschedule_from_pthread, .-reschedule_from_pthread
 
 .globl gregor_main
 gregor_main:
@@ -30,6 +33,7 @@ gregor_main:
 	call do_gregor_main
 	popl %eax
 	ret
+.size gregor_main, .-gregor_main
 
 .globl swicth_free_current
 swicth_free_current:
@@ -42,6 +46,7 @@ swicth_free_current:
 	popl %ecx
 	popf
 	ret
+.size swicth_free_current, .-swicth_free_current
 	
 
 .globl switch_context
@@ -61,6 +66,8 @@ swicth_context_to_new:
 after_switch_to_next:
 	call do_reschedule_reset_current
 	ret
+.size switch_context, .-switch_context
+.size swicth_context_to_new, .-swicth_context_to_new
 
 # END(switch_context)
 
@@ -72,3 +79,4 @@ cleanup:
 	call do_cleanup
 1:  #cleanup should never return
 	jmp 	1b
+.size cleanup, .-cleanup
