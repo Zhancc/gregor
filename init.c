@@ -7,6 +7,7 @@
 #include "gregor_error.h"
 #include "thread.h"
 #include "init.h"
+#include "linked_list.h"
 
 static int NUM_PROCESSOR;
 #define NUM_WORKER (NUM_PROCESSOR*2) //minus one because we include the calling thread
@@ -20,6 +21,7 @@ void _init(void){
 
 	/* init mstate*/
 	mstate.worker_info = (wstate*)malloc((NUM_WORKER)*sizeof(wstate));
+	mstate.deque = Deque_new();
 
 	for(int i = 1; i < NUM_WORKER; i++){
 		Pthread_create(&(mstate.worker_info[i].threadId), NULL, __gregor_worker_init, (void*)(long)i);

@@ -53,7 +53,18 @@ void do_reschedule_reset_current(){
 /*grab the work from its queue or sleep on semaphore until waken up*/
 #warning: to be implemented
 jcb* pick_work(){
-
+	Node* node = NULL;
+	while (1) {
+		pthread_mutex_lock(&mstate.deque->queue_lock);
+		Node* node = GetNodeFromHead(mstate.deque);
+		if (node == NULL) {
+			pthread_cond_wait(&mstate.deque->queue_cond, &mstate.deque->queue_lock);
+		} else {
+			break;
+			pthread_mutex_unlock(&mstate.deque->queue_lock);
+		}
+	}
+	return node->job;
 }
 
 

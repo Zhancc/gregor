@@ -100,6 +100,7 @@ typedef struct wstate{
 struct mstate{
 	wstate *worker_info;
 	sem_t sem;
+	Deque *deque;
 } mstate;
 
 
