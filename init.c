@@ -1,4 +1,4 @@
-/* 
+/*
 * This file describe the initialization of Gregor's environment
 */
 
@@ -17,12 +17,12 @@ void _init(void){
 	if(NUM_PROCESSOR < 0){
 		__gregor_error("Initialization fail");
 	}
-	
+
 	/* init mstate*/
 	mstate.worker_info = (wstate*)malloc((NUM_WORKER)*sizeof(wstate));
 
-	for(int i = 1 ; i < NUM_WORKER ; i++){
-		Pthread_create(&(mstate.worker_info[i].threadId),NULL,__gregor_worker_init, (void*)(long)i);
+	for(int i = 1; i < NUM_WORKER; i++){
+		Pthread_create(&(mstate.worker_info[i].threadId), NULL, __gregor_worker_init, (void*)(long)i);
 	}
 
 }

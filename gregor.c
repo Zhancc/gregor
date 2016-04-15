@@ -5,13 +5,14 @@
 #include "gregor.h"
 #include "gregor_error.h"
 #include "thread.h"
+
+
 /*
-* the second argument being function ptr, 
+* the second argument being function ptr,
 * the rest argument should be the argument list to routine:
 * sizeof(arg1),arg1,sizeof(arg2),arg2.....
 * return negative if anything bad happens, or 0 otherwise
 */
-
 jcb* create_job(void* dummy_ret, enum return_type rt, void* return_ptr, void* routine, int num_arg, ...){
 	/* get a stack*/
 	int pagesize = getpagesize();
@@ -64,7 +65,7 @@ jcb* create_job(void* dummy_ret, enum return_type rt, void* return_ptr, void* ro
 
 	// top = (void*)((char*)top - sum);
 	top--;
-	
+
 	*(int**)top = (int*)cleanup; /* return to cleanup routine after finishing the job*/
 	top--;
 	*(int**)top = (int*)routine;
@@ -74,12 +75,12 @@ jcb* create_job(void* dummy_ret, enum return_type rt, void* return_ptr, void* ro
 
 
 #warning: add the job to some queue to be implemented
-void add_job(jcb* job){	
+void add_job(jcb* job){
 	return ;
 }
 
 /* wait until all the descendents complete */
-#warning: refinement: currently just yield the cpu and sleep 
+#warning: refinement: currently just yield the cpu and sleep
 int __gregor_sync(){
 	while(CURRENT->join_counter){
 		usleep(1);

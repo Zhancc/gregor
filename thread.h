@@ -49,7 +49,7 @@ enum job_status{
 *		ebp
 *		esi
 *		edi
-*/	
+*/
 	SYNC
 };
 
@@ -78,7 +78,7 @@ typedef struct wstate{
 	int queue_head, queue_rear;
 	/* pointer to the currently executing job */
 	jcb*  cur;
-	
+
 	/*the job for reschedule only*/
 	jcb* next_job;
 
@@ -103,8 +103,8 @@ struct mstate{
 } mstate;
 
 
-/* the register global to store the tid. linked program must avoid using this register in compilation*/ 
-register int tid __asm__("ebx"); 
+/* the register global to store the tid. linked program must avoid using this register in compilation*/
+register int tid __asm__("ebx");
 
 /*global state data structure end*/
 void gregor_main(int* return_ptr, int (*routine)(int, char**),int argc, char** argv );
