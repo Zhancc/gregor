@@ -31,6 +31,31 @@ enum return_type{
 	PTR
 };
 
+enum arg_type{
+	VOID = 0,
+	SIGNED_CHAR,
+	UNSIGNED_CHAR,
+	CHAR,
+	SHORT_INT,
+	SIGNED_SHORT,
+	UNSIGNED_SHORT_INT,
+	INT,
+	UNSIGNED_INT,
+	LONG_INT,
+	UNSIGNED_LONG_INT,
+	LONG_LONG_INT,
+	UNSIGNED_LONG_LONG_INT,
+	FLOAT,
+	DOUBLE,
+	LONG_DOUBLE,
+	PTR,
+
+	STRUCT
+};
+
+#define ARG(T,D) T, D
+#define STRUCT_ARG(D) STRUCT, sizeof(D), D
+
 enum job_status{
 	SPAWN,
 /*	stack:
@@ -65,6 +90,7 @@ typedef struct jcb{
 	void* ret_ptr;
 	int join_counter;
 	struct jcb* parent;
+	char fstate[512] __attribute__((aligned(16)));
 
 } jcb;
 

@@ -103,6 +103,11 @@ void set_next_job(jcb* job){
 #warning: refinement: currently just enqueue the current work
 int __gregor_sync(){
 
+	while(CURRENT->join_counter){
+		usleep(1);
+	}
+	return;
+
 	jcb* job = pick_work();
 	if(CURRENT->join_counter){
 		set_next_job(job);

@@ -10,8 +10,9 @@ spawn:
 
 .globl reschedule, reschedule_from_pthread
 reschedule:
-	subl 	$512, %esp
-	fxsave   (%esp)
+	# subl 	$512, %esp
+	# fxsave   (%esp)
+	call fstate_save
 reschedule_from_pthread:
 	pushf
 	pushl 	%ecx
@@ -58,12 +59,11 @@ switch_context:
 	popl %edx
 	popl %ecx
 	popf
-	fxrstor (%esp)
-	addl $512, %esp
-	jmp after_switch_to_next
+	call do_reschedule_reset_current	
+	call fstate_restore
+	ret
 switch_context_to_new:
 	movl 4(%esp), %esp
-after_switch_to_next:
 	call do_reschedule_reset_current
 	ret
 .size switch_context, .-switch_context

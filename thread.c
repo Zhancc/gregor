@@ -66,6 +66,7 @@ void* __gregor_worker_init(void* threadid){
 void __gregor_do_work_loop(){
 	while(1){
 		jcb* next = pick_work();
+		printf("this is worker %d\n",tid );
 	/*jump to the work specified*/
 		if(next==NULL){
 			__gregor_panic("pick a NULL work in __gregor_do_work_loop");
@@ -125,21 +126,21 @@ void do_cleanup(unsigned int eax, unsigned int edx){
 				__asm__(
 					"fstps %0\t\n"
 					:
-					:"m"(CURRENT->ret_ptr)
+					:"m"(*(float*)(CURRENT->ret_ptr))
 					);
 				break;
 			case DOUBLE:
 				__asm__(
 					"fstpl %0\t\n"
 					:
-					:"m"(CURRENT->ret_ptr)
+					:"m"(*(double*)(CURRENT->ret_ptr))
 					);
 				break;
 			case LONG_DOUBLE:
 				__asm__(
 					"fstpt %0\t\n"
 					:
-					:"m"(CURRENT->ret_ptr)
+					:"m"(*(long double*)(CURRENT->ret_ptr))
 					);
 				break;
 			case PTR:

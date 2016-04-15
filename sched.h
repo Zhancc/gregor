@@ -11,5 +11,6 @@ void swicth_free_current(void* p_esp);
 void free_current();
 void switch_context_to_new(void* esp);
 void switch_context(void* esp);
-
+void fstate_save();
+void fstate_restore();
 #endif

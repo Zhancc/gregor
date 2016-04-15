@@ -72,3 +72,17 @@ void free_current(){
 	munmap(CURRENT->mmap_addr, CURRENT->mmap_size);
 	CURRENT = NULL;
 }
+
+void fstate_save(){
+	__asm__(" fxsave %0"
+		:
+		:"m"(CURRENT->fstate)
+		);
+}
+
+void fstate_restore(){
+	__asm__(" fxrstor %0"
+		:
+		:"m"(CURRENT->fstate)
+		);
+}
