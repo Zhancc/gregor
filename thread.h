@@ -97,12 +97,6 @@ typedef struct wstate{
 
 } wstate;
 
-struct mstate{
-	wstate *worker_info;
-	sem_t sem;
-	Deque *deque;
-} mstate;
-
 typedef struct node {
     jcb* job;
     struct node* next;
@@ -115,6 +109,12 @@ typedef struct deque {
     pthread_mutex_t queue_lock;
     pthread_cond_t queue_cond;
 } Deque;
+
+struct mstate{
+	wstate *worker_info;
+	sem_t sem;
+	Deque *deque;
+} mstate;
 
 Node* Node_new(int value);
 Deque* Deque_new();
