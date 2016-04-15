@@ -23,9 +23,9 @@ void do_reschedule(void* esp){
 		switch(CURRENT_WORKER->next_job->status){
 			case SPAWN:
 				CURRENT_WORKER->next_job->status = RUNNING;
-				swicth_context_to_new(CURRENT_WORKER->next_job->esp);
+				switch_context_to_new(CURRENT_WORKER->next_job->esp);
 			case RUNNING:
-				swicth_context(CURRENT_WORKER->next_job->esp);
+				switch_context(CURRENT_WORKER->next_job->esp);
 				break;
 			case SYNC:
 				__gregor_panic("switch to a synced job");
@@ -58,9 +58,11 @@ jcb* pick_work(){
 	while (isEmpty(mstate.deque)) {
 		pthread_cond_wait(&mstate.deque->queue_cond, &mstate.deque->queue_lock);
 	}
-	Node* node = GetNodeFromHead(mstate.deque);
+	node = GetNodeFromHead(mstate.deque);
 	pthread_mutex_unlock(&mstate.deque->queue_lock);
-	return node->job;
+	jcb* job = node->job;
+	free(node);
+	return job;
 }
 
 

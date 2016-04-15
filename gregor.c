@@ -34,7 +34,8 @@ jcb* create_job(void* dummy_ret, enum return_type rt, void* return_ptr, void* ro
 	job->join_counter = 0;
 	job->parent = CURRENT;
 	/*update the join counter of the parrent*/
-	__sync_fetch_and_add(&(job->parent->join_counter), 1);
+	if(CURRENT!=NULL)
+		__sync_fetch_and_add(&(job->parent->join_counter), 1);
 
 	/* top of stack */
 	int* top = STACK_ALIGN(int *, job);
@@ -89,6 +90,7 @@ void add_job_head(jcb* job){
 	pthread_mutex_lock(&mstate.deque->queue_lock);
 	AddNodeToHead(mstate.deque, job);
 	pthread_mutex_unlock(&mstate.deque->queue_lock);
+	pthread_cond_signal(&mstate.deque->queue_cond);	
 	return ;
 }
 

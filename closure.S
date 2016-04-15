@@ -49,7 +49,7 @@ swicth_free_current:
 .size swicth_free_current, .-swicth_free_current
 	
 
-.globl switch_context
+.globl switch_context, switch_context_to_new
 switch_context:	
 	movl 4(%esp), %esp
 	popl %edi
@@ -61,13 +61,13 @@ switch_context:
 	fxrstor (%esp)
 	addl $512, %esp
 	jmp after_switch_to_next
-swicth_context_to_new:
+switch_context_to_new:
 	movl 4(%esp), %esp
 after_switch_to_next:
 	call do_reschedule_reset_current
 	ret
 .size switch_context, .-switch_context
-.size swicth_context_to_new, .-swicth_context_to_new
+.size switch_context_to_new, .-switch_context_to_new
 
 # END(switch_context)
 

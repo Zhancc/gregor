@@ -24,20 +24,18 @@ pthread_t Pthread_self(void){
 
 void do_gregor_main(void* p_esp, void* dummy_ret, int* return_ptr, int (*routine)(int, char**), int argc, char** argv){
 	/* initialize the master thread */
-	_init();
+	init();
 	main_arg ma;
 	ma.p_esp = p_esp;
 	ma.return_ptr = return_ptr;
 	ma.routine = routine;
 	ma.argc = argc;
 	ma.argv = argv;
-	Pthread_create(&(mstate.worker_info[0].threadId),NULL,do_gregor_main_init, (void*)&ma);
-	mstate.worker_info[0].queue_head = mstate.worker_info[0].queue_rear = 0;
-	mstate.worker_info[0].cur = NULL;
+	pthread_create(&(mstate.worker_info[0].threadId),NULL,do_gregor_main_init, (void*)&ma);
 
 	#warning: wait can be interrupted by signal
 	sem_wait(&(mstate.sem));
-	_fini();
+	fini();
 }
 
 void init_data_structure(){
@@ -72,7 +70,7 @@ void __gregor_do_work_loop(){
 		if(next==NULL){
 			__gregor_panic("pick a NULL work in __gregor_do_work_loop");
 		}
-		CURRENT_WORKER->next_job = next;
+		set_next_job(next);
 		reschedule_from_pthread();
 	}
 }
@@ -202,7 +200,16 @@ void AddNodeToTail(Deque* deque, jcb* job) {
 }
 
 void AddNodeToHead(Deque* deque, jcb* job) {
-!!!!!
+	Node* node = Node_new(job);
+	if (deque->head_node == NULL) {
+		deque->head_node = node;
+		deque->tail_node = node;
+	} else {
+		Node* next = deque->head_node;
+		node->next = next;
+		next->prev = node;
+		deque->head_node = node;
+	}
 }
 
 

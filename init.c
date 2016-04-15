@@ -7,13 +7,12 @@
 #include "gregor_error.h"
 #include "thread.h"
 #include "init.h"
-#include "linked_list.h"
 
 static int NUM_PROCESSOR;
 #define NUM_WORKER (NUM_PROCESSOR*2) //minus one because we include the calling thread
 
 
-void _init(void){
+void init(void){
 	NUM_PROCESSOR = sysconf(_SC_NPROCESSORS_ONLN);
 	if(NUM_PROCESSOR < 0){
 		__gregor_error("Initialization fail");
@@ -31,6 +30,6 @@ void _init(void){
 
 
 
-void _fini(void){
+void fini(void){
 	free(mstate.worker_info);
 }
