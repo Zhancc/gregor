@@ -80,6 +80,7 @@ void add_job_tail(jcb* job){
 	pthread_mutex_lock(&mstate.deque->queue_lock);
 	AddNodeToTail(mstate.deque, job);
 	pthread_mutex_unlock(&mstate.deque->queue_lock);
+	pthread_cond_signal(&mstate.deque->queue_cond);
 	return ;
 }
 
