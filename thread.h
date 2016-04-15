@@ -121,7 +121,7 @@ Deque* Deque_new();
 void AddNodeToTail(Deque* deque, jcb* job);
 Node* GetNodeFromTail(Deque* deque);
 Node* GetNodeFromHead(Deque *deque);
-bool isEmpty(Deque *deque);
+int isEmpty(Deque *deque);
 
 /* the register global to store the tid. linked program must avoid using this register in compilation*/
 register int tid __asm__("ebx");

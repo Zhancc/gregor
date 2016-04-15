@@ -246,6 +246,6 @@ void print_list_from_tail(Node* tail) {
     }
 }
 
-bool isEmpty(Deque *deque) {
+int isEmpty(Deque *deque) {
     return deque->head_node == NULL;
 }
