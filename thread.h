@@ -103,6 +103,25 @@ struct mstate{
 	Deque *deque;
 } mstate;
 
+typedef struct node {
+    jcb* job;
+    struct node* next;
+    struct node* prev;
+} Node;
+
+typedef struct deque {
+    Node *head_node;
+    Node *tail_node;
+    pthread_mutex_t queue_lock;
+    pthread_cond_t queue_cond;
+} Deque;
+
+Node* Node_new(int value);
+Deque* Deque_new();
+void AddNodeToTail(Deque* deque, jcb* job);
+Node* GetNodeFromTail(Deque* deque);
+Node* GetNodeFromHead(Deque *deque);
+bool isEmpty(Deque *deque);
 
 /* the register global to store the tid. linked program must avoid using this register in compilation*/
 register int tid __asm__("ebx");
