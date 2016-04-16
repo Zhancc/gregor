@@ -7,7 +7,7 @@
 char test2(char a){
 	printf("this is %c\n",a);
 	return a+1;
-	
+
 }
 
 
