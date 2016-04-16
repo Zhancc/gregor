@@ -3,6 +3,7 @@
 
 #include "thread.h"
 jcb* pick_work();
+jcb* try_pick_work();
 void reschedule();
 void reschedule_from_pthread();
 void do_reschedule(void* esp);

@@ -9,11 +9,13 @@
 #include "init.h"
 
 static int NUM_PROCESSOR;
-#define NUM_WORKER (NUM_PROCESSOR*2) //minus one because we include the calling thread
+#define NUM_WORKER (NUM_PROCESSOR) //minus one because we include the calling thread
 
 
 void init(void){
 	NUM_PROCESSOR = sysconf(_SC_NPROCESSORS_ONLN);
+	pagesize = getpagesize();
+	mem_op = 0;
 	if(NUM_PROCESSOR < 0){
 		__gregor_error("Initialization fail");
 	}

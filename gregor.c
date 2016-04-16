@@ -16,10 +16,9 @@
 */
 jcb* create_job(void* dummy_ret, enum type rt, void* return_ptr, void* routine, int num_arg, ...){
 	/* get a stack*/
-	int pagesize = getpagesize();
-
 	#warning: find a stack map from the cache to be implemented
 	void* task_stack = mmap(NULL, pagesize, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_STACK, -1, 0 );
+
 	if(task_stack == (void*)-1)
 		__gregor_error("mmap failed");
 
@@ -33,6 +32,7 @@ jcb* create_job(void* dummy_ret, enum type rt, void* return_ptr, void* routine, 
 	job->ret_ptr = return_ptr;
 	job->join_counter = 0;
 	job->parent = CURRENT;
+	job->prev = job->next = NULL;
 	/*update the join counter of the parrent*/
 	if(CURRENT!=NULL)
 		__sync_fetch_and_add(&(job->parent->join_counter), 1);
@@ -104,17 +104,13 @@ void set_next_job(jcb* job){
 int __gregor_sync(){
 
 	while(CURRENT->join_counter){
-		usleep(1);
-	}
-	return;
-
-	jcb* job = pick_work();
-	if(CURRENT->join_counter){
+		jcb* job = try_pick_work();
+		if(!job){
+			usleep(1);
+			continue;
+		}
 		set_next_job(job);
-		while(CURRENT->join_counter)
-			reschedule();
-	}else{
-		add_job_head(job);
+		reschedule();
 	}
 	
 	return 1;

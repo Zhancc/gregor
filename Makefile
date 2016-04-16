@@ -3,7 +3,7 @@
 CC=gcc
 # Hey!, I am comment number 2. I want to say that CFLAGS will be the
 # options I'll pass to the compiler.
-CFLAGS= -g -m32 -c -Wall -std=gnu99 -O3 
+CFLAGS= -g -m32 -c -Wall -std=gnu99 #-O3
 LDFLAGS= -m32 -shared -ldl -lpthread 
 
 # libgregor.so: gregor_error.o gregor.o thread.o closure.o

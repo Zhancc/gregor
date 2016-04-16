@@ -79,10 +79,14 @@ enum job_status{
 	SYNC
 };
 
+
 #define CURRENT_WORKER (&(mstate.worker_info[tid]))
 #define CURRENT   (CURRENT_WORKER->cur)
 /* control block of each job reside at the top address of its stack*/
 typedef struct jcb{
+    struct jcb* next;
+    struct jcb* prev;
+
 	void* esp;
 	void* mmap_addr;
 	int   mmap_size;
@@ -94,6 +98,13 @@ typedef struct jcb{
 	char fstate[512] __attribute__((aligned(16)));
 
 } jcb;
+
+typedef	struct Deque{
+	    jcb *head_node;
+	    jcb *tail_node;
+	    pthread_mutex_t queue_lock;
+	    pthread_cond_t queue_cond;
+} Deque;
 
 // typedef void* continuation_ptr;
 
@@ -121,21 +132,20 @@ typedef struct wstate{
 *		esi
 *		edi
 */
-
 } wstate;
 
-typedef struct node {
-    jcb* job;
-    struct node* next;
-    struct node* prev;
-} Node;
+// typedef struct node {
+//     jcb* job;
+//     struct node* next;
+//     struct node* prev;
+// } Node;
 
-typedef struct deque {
-    Node *head_node;
-    Node *tail_node;
-    pthread_mutex_t queue_lock;
-    pthread_cond_t queue_cond;
-} Deque;
+// typedef struct deque {
+//     Node *head_node;
+//     Node *tail_node;
+//     pthread_mutex_t queue_lock;
+//     pthread_cond_t queue_cond;
+// } Deque;
 
 struct mstate{
 	wstate *worker_info;
@@ -143,16 +153,17 @@ struct mstate{
 	Deque *deque;
 } mstate;
 
-Node* Node_new(jcb* job);
 Deque* Deque_new();
 void AddNodeToTail(Deque* deque, jcb* job);
 void AddNodeToHead(Deque* deque, jcb* job);
-Node* GetNodeFromTail(Deque* deque);
-Node* GetNodeFromHead(Deque *deque);
+jcb* GetNodeFromTail(Deque* deque);
+jcb* GetNodeFromHead(Deque *deque);
 int isEmpty(Deque *deque);
 
 /* the register global to store the tid. linked program must avoid using this register in compilation*/
 register int tid __asm__("ebx");
+int pagesize;
+int mem_op;
 
 /*global state data structure end*/
 void gregor_main(int* return_ptr, int (*routine)(int, char**),int argc, char** argv );
