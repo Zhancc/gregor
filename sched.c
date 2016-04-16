@@ -9,7 +9,6 @@
 *  after swap it should enqueue current if it's not NULL and set current to next job and reset next job
 */
 void do_reschedule(void* esp){
-
 	/*save the esp first*/
 	if(CURRENT == NULL){
 	/* if CURRENT is NULL, then it's using the pthread stack now*/
@@ -53,20 +52,18 @@ void do_reschedule_reset_current(){
 /*grab the work from its queue or sleep on semaphore until waken up*/
 #warning: to be implemented
 jcb* pick_work(){
-	Node* node = NULL;
+	jcb* node = NULL;
 	pthread_mutex_lock(&mstate.deque->queue_lock);
 	while (isEmpty(mstate.deque)) {
 		pthread_cond_wait(&mstate.deque->queue_cond, &mstate.deque->queue_lock);
 	}
 	node = GetNodeFromHead(mstate.deque);
 	pthread_mutex_unlock(&mstate.deque->queue_lock);
-	jcb* job = node->job;
-	free(node);
-	return job;
+	return node;
 }
 
 jcb* try_pick_work(){
-	Node* node = NULL;
+	jcb* node = NULL;
 	pthread_mutex_lock(&mstate.deque->queue_lock);
 	while (isEmpty(mstate.deque)) {
 		pthread_mutex_unlock(&mstate.deque->queue_lock);
@@ -74,9 +71,7 @@ jcb* try_pick_work(){
 	}
 	node = GetNodeFromHead(mstate.deque);
 	pthread_mutex_unlock(&mstate.deque->queue_lock);
-	jcb* job = node->job;
-	free(node);
-	return job;
+	return node;
 }
 
 

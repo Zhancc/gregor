@@ -33,7 +33,7 @@ void do_gregor_main(void* p_esp, void* dummy_ret, int* return_ptr, int (*routine
 	ma.argv = argv;
 	pthread_create(&(mstate.worker_info[0].threadId),NULL,do_gregor_main_init, (void*)&ma);
 
-	#warning: wait can be interrupted by signal
+#warning: wait can be interrupted by signal
 	sem_wait(&(mstate.sem));
 	fini();
 }
@@ -66,7 +66,7 @@ void* __gregor_worker_init(void* threadid){
 void __gregor_do_work_loop(){
 	while(1){
 		jcb* next = pick_work();
-	/*jump to the work specified*/
+		/*jump to the work specified*/
 		if(next==NULL){
 			__gregor_panic("pick a NULL work in __gregor_do_work_loop");
 		}
@@ -123,24 +123,24 @@ void do_cleanup(unsigned int eax, unsigned int edx){
 				break;
 			case FLOAT:
 				__asm__(
-					"fstps %0\t\n"
-					:
-					:"m"(*(float*)(CURRENT->ret_ptr))
-					);
+						"fstps %0\t\n"
+						:
+						:"m"(*(float*)(CURRENT->ret_ptr))
+				       );
 				break;
 			case DOUBLE:
 				__asm__(
-					"fstpl %0\t\n"
-					:
-					:"m"(*(double*)(CURRENT->ret_ptr))
-					);
+						"fstpl %0\t\n"
+						:
+						:"m"(*(double*)(CURRENT->ret_ptr))
+				       );
 				break;
 			case LONG_DOUBLE:
 				__asm__(
-					"fstpt %0\t\n"
-					:
-					:"m"(*(long double*)(CURRENT->ret_ptr))
-					);
+						"fstpt %0\t\n"
+						:
+						:"m"(*(long double*)(CURRENT->ret_ptr))
+				       );
 				break;
 			case PTR:
 				*(int*)(CURRENT->ret_ptr) = eax;
@@ -148,7 +148,7 @@ void do_cleanup(unsigned int eax, unsigned int edx){
 		}
 	}
 
-	#warning: refinement: currently just yield the processor
+#warning: refinement: currently just yield the processor
 	while(CURRENT->join_counter){
 		usleep(1);
 	}	
@@ -160,7 +160,7 @@ void do_cleanup(unsigned int eax, unsigned int edx){
 		if(ret<=0){
 			__gregor_panic("join_counter incorrect");
 		}
-	}else{
+	} else {
 		/*invariant: at this point, no other threads should be working*/
 		/*wake up the master thread*/
 		sem_post(&(mstate.sem));
@@ -171,74 +171,82 @@ void do_cleanup(unsigned int eax, unsigned int edx){
 }
 
 Node* Node_new(jcb* job) {
-    Node *p = (Node *)malloc(sizeof(Node));
-    p->job = job;
-    p->next = NULL;
-    p->prev = NULL;
-    return p;
+	Node *p = (Node *)malloc(sizeof(Node));
+	p->job = job;
+	p->next = NULL;
+	p->prev = NULL;
+	return p;
 }
 
 Deque* Deque_new() {
-    Deque *p = (Deque *)malloc(sizeof(Deque));
-    p->head_node = NULL;
-    p->tail_node = NULL;
-    pthread_cond_init(&p->queue_cond, NULL);
-    pthread_mutex_init(&p->queue_lock, NULL);
-    return p;
+	Deque *p = (Deque *)malloc(sizeof(Deque));
+	p->head_node = NULL;
+	p->tail_node = NULL;
+	p->size = 0;
+	pthread_cond_init(&p->queue_cond, NULL);
+	pthread_mutex_init(&p->queue_lock, NULL);
+	return p;
 }
 
 void AddNodeToTail(Deque* deque, jcb* job) {
-    Node* node = Node_new(job);
-    if (deque->tail_node == NULL) {
-        deque->head_node = node;
-        deque->tail_node = node;
-    } else {
-        Node* prev = deque->tail_node;
-        prev->next = node;
-        node->prev = prev;
-        deque->tail_node = node;
-    }
+	// Node* node = Node_new(job);
+	job->next = job->prev = NULL;
+	if (deque->tail_node == NULL) {
+		deque->head_node = job;
+		deque->tail_node = job;
+	} else {
+		jcb* prev = deque->tail_node;
+		prev->next = job;
+		job->prev = prev;
+		deque->tail_node = job;
+	}
+	deque->size++;
 }
 
 void AddNodeToHead(Deque* deque, jcb* job) {
-	Node* node = Node_new(job);
+	//Node* node = Node_new(job);
+	job->next = job->prev = NULL;
 	if (deque->head_node == NULL) {
-		deque->head_node = node;
-		deque->tail_node = node;
+		deque->head_node = job;
+		deque->tail_node = job;
 	} else {
-		Node* next = deque->head_node;
-		node->next = next;
-		next->prev = node;
-		deque->head_node = node;
+		jcb* next = deque->head_node;
+		job->next = next;
+		next->prev = job;
+		deque->head_node = job;
 	}
+	deque->size++;
 }
 
 
-Node* GetNodeFromTail(Deque* deque) {
-    if (deque->tail_node == NULL) return NULL;
-    Node* prev = deque->tail_node;
+jcb* GetNodeFromTail(Deque* deque) {
+	if (deque->size == 0) return NULL;
+	jcb* prev = deque->tail_node;
 
-    if (prev->prev == NULL) {
-        deque->head_node = NULL;
-    } else {
-        prev->prev->next = NULL;
-    }
-    deque->tail_node = prev->prev;
-
-    return prev;
+	if (prev->prev == NULL) {
+		deque->head_node = NULL;
+	} else {
+		prev->prev->next = NULL;
+	}
+	deque->tail_node = prev->prev;
+	prev->prev = prev->next = NULL;
+	deque->size--;
+	return prev;
 }
 
-Node* GetNodeFromHead(Deque *deque) {
-    if (deque->head_node == NULL) return NULL;
-    Node *head = deque->head_node;
+jcb* GetNodeFromHead(Deque *deque) {
+	if (deque->size == 0) return NULL;
+	jcb *head = deque->head_node;
 
-    if (head->next == NULL) {
-        deque->tail_node = NULL;
-    } else {
-        head->next->prev = NULL;
-    }
-    deque->head_node = head->next;
-    return head;
+	if (head->next == NULL) {
+		deque->tail_node = NULL;
+	} else {
+		head->next->prev = NULL;
+	}
+	deque->head_node = head->next;
+	head->prev = head->next = NULL;
+	deque->size--;
+	return head;
 }
 
 // void print_list_from_head(Node* head) {
@@ -256,5 +264,5 @@ Node* GetNodeFromHead(Deque *deque) {
 // }
 
 int isEmpty(Deque *deque) {
-    return deque->head_node == NULL;
+	return deque->size == 0;
 }

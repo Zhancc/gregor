@@ -32,6 +32,7 @@ jcb* create_job(void* dummy_ret, enum type rt, void* return_ptr, void* routine, 
 	job->ret_ptr = return_ptr;
 	job->join_counter = 0;
 	job->parent = CURRENT;
+	job->prev = job->next = NULL;
 	/*update the join counter of the parrent*/
 	if(CURRENT!=NULL)
 		__sync_fetch_and_add(&(job->parent->join_counter), 1);

@@ -91,7 +91,7 @@ typedef struct jcb{
 	int join_counter;
 	struct jcb* parent;
 	char fstate[512] __attribute__((aligned(16)));
-
+    struct jcb *prev, *next;
 } jcb;
 
 // typedef void* continuation_ptr;
@@ -130,8 +130,9 @@ typedef struct node {
 } Node;
 
 typedef struct deque {
-    Node *head_node;
-    Node *tail_node;
+	struct jcb* head_node;
+	struct jcb* tail_node;
+	int size;
     pthread_mutex_t queue_lock;
     pthread_cond_t queue_cond;
 } Deque;
@@ -146,8 +147,8 @@ Node* Node_new(jcb* job);
 Deque* Deque_new();
 void AddNodeToTail(Deque* deque, jcb* job);
 void AddNodeToHead(Deque* deque, jcb* job);
-Node* GetNodeFromTail(Deque* deque);
-Node* GetNodeFromHead(Deque *deque);
+jcb* GetNodeFromTail(Deque* deque);
+jcb* GetNodeFromHead(Deque *deque);
 int isEmpty(Deque *deque);
 
 /* the register global to store the tid. linked program must avoid using this register in compilation*/
