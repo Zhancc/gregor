@@ -41,29 +41,99 @@ jcb* create_job(void* dummy_ret, enum type rt, void* return_ptr, void* routine, 
 	int* top = STACK_ALIGN(int *, job);
 	top = top - 1;
 
-	/*enqueue-stack*/
+	/* enqueue-stack */
 	va_list varlist;
 	va_start(varlist, num_arg);
+	va_list vlist;
+	va_copy(vlist, varlist);
 	int sum = 0;
-	for( int i = 0 ; i < num_arg; i++){
+	for (int i = 0 ; i < num_arg; i++){
 		int size = va_arg(varlist, int);
-		switch(size){
-			/* even sizeof(char), sizeof(int) is pushed to stack */
-			case 1:
-			case 2:
-			case 4:
-				sum+=4;
+		switch(size) {
+			case VOID :
 				break;
-			default:
-				sum+=size;
+			case SIGNED_CHAR:
+			case CHAR:
+			case SHORT_INT:
+			case SIGNED_SHORT:
+			case INT:
+			case LONG_INT:
+			case UNSIGNED_CHAR:
+			case UNSIGNED_SHORT_INT:
+			case UNSIGNED_INT:
+			case UNSIGNED_LONG_INT:
+			case PTR:
+			case FLOAT:
+				sum += 4;
+				break;
+			case LONG_LONG_INT:
+			case UNSIGNED_LONG_LONG_INT:
+			case DOUBLE:
+				sum += 8;
+				break;
+			case LONG_DOUBLE:
+				sum += sizeof(long double);
+				break;
+			case STRUCT:
+				sum += va_arg(varlist, int);
 				break;
 		}
 	}
 	top = (void*)((char*)top - sum);
 
 	#warning: we rely on the fact that the arguments are passed by stack and stack grows downwards
-	if(num_arg > 0)
-		memcpy(top,&num_arg + num_arg + 1,sum);
+	if(num_arg > 0) {
+		char* dst = top;
+		char* src = &num_arg + num_arg + 1;
+		for (int i = 0 ; i < num_arg; i++){
+			int size = va_arg(vlist, int);
+			int arg_size = 0;
+			float temp;
+			switch(size) {
+				case VOID :
+					break;
+				case SIGNED_CHAR:
+				case UNSIGNED_CHAR:
+				case CHAR:
+				case SHORT_INT:
+				case SIGNED_SHORT:
+				case UNSIGNED_SHORT_INT:
+				case INT:
+				case UNSIGNED_INT:
+				case LONG_INT:
+				case UNSIGNED_LONG_INT:
+				case PTR:
+					memcpy(dst, src, 4);
+					dst += 4;
+					src += 4;
+					break;
+				case FLOAT:
+					temp = (float) (*(double *) src);
+					memcpy(dst, &temp, 4);
+					dst += 4;
+					src += 8;
+					break;
+				case LONG_LONG_INT:
+				case UNSIGNED_LONG_LONG_INT:
+				case DOUBLE:
+					memcpy(dst, src, 8);
+					dst += 8;
+					src += 8;
+					break;
+				case LONG_DOUBLE:
+					memcpy(dst, src, sizeof(long double));
+					dst += sizeof(long double);
+					src += sizeof(long double);
+				case STRUCT:
+					arg_size = va_arg(vlist, int);
+					memcpy(dst, src, arg_size);
+					dst += arg_size;
+					src += arg_size;
+					break;
+			}
+		}
+	}
+		// memcpy(top, &num_arg + num_arg + 1,sum);
 
 	// top = (void*)((char*)top - sum);
 	top--;
@@ -90,7 +160,7 @@ void add_job_head(jcb* job){
 	pthread_mutex_lock(&mstate.deque->queue_lock);
 	AddNodeToHead(mstate.deque, job);
 	pthread_mutex_unlock(&mstate.deque->queue_lock);
-	pthread_cond_signal(&mstate.deque->queue_cond);	
+	pthread_cond_signal(&mstate.deque->queue_cond);
 	return ;
 }
 
@@ -112,6 +182,6 @@ int __gregor_sync(){
 		set_next_job(job);
 		reschedule();
 	}
-	
+
 	return 1;
 }

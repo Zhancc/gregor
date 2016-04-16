@@ -13,6 +13,7 @@
 /*support for primitive types + pointer types only so far*/
 enum type{
 	VOID = 0,
+	/* 4 Byte */
 	SIGNED_CHAR,
 	UNSIGNED_CHAR,
 	CHAR,
@@ -23,12 +24,14 @@ enum type{
 	UNSIGNED_INT,
 	LONG_INT,
 	UNSIGNED_LONG_INT,
+	PTR,
+	FLOAT,
+	/* 8 Byte */
 	LONG_LONG_INT,
 	UNSIGNED_LONG_LONG_INT,
-	FLOAT,
 	DOUBLE,
+	/* 16 Byte */
 	LONG_DOUBLE,
-	PTR,
 	STRUCT
 };
 /*
