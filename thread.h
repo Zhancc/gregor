@@ -68,7 +68,6 @@ enum job_status{
 	RUNNING,
 /*	stack:
 *		return addr before reschedule
-*		fxsave
 *		eflags
 *		ecx
 *		edx
@@ -79,14 +78,10 @@ enum job_status{
 	SYNC
 };
 
-
 #define CURRENT_WORKER (&(mstate.worker_info[tid]))
 #define CURRENT   (CURRENT_WORKER->cur)
 /* control block of each job reside at the top address of its stack*/
 typedef struct jcb{
-    struct jcb* next;
-    struct jcb* prev;
-
 	void* esp;
 	void* mmap_addr;
 	int   mmap_size;
@@ -99,21 +94,14 @@ typedef struct jcb{
 
 } jcb;
 
-typedef	struct Deque{
-	    jcb *head_node;
-	    jcb *tail_node;
-	    pthread_mutex_t queue_lock;
-	    pthread_cond_t queue_cond;
-} Deque;
-
 // typedef void* continuation_ptr;
 
 typedef struct wstate{
 	pthread_t threadId;
 
 
-	jcb* worklist[MAX_QUEUE];
-	int queue_head, queue_rear;
+	// jcb* worklist[MAX_QUEUE];
+	// int queue_head, queue_rear;
 	/* pointer to the currently executing job */
 	jcb*  cur;
 
@@ -132,20 +120,21 @@ typedef struct wstate{
 *		esi
 *		edi
 */
+
 } wstate;
 
-// typedef struct node {
-//     jcb* job;
-//     struct node* next;
-//     struct node* prev;
-// } Node;
+typedef struct node {
+    jcb* job;
+    struct node* next;
+    struct node* prev;
+} Node;
 
-// typedef struct deque {
-//     Node *head_node;
-//     Node *tail_node;
-//     pthread_mutex_t queue_lock;
-//     pthread_cond_t queue_cond;
-// } Deque;
+typedef struct deque {
+    Node *head_node;
+    Node *tail_node;
+    pthread_mutex_t queue_lock;
+    pthread_cond_t queue_cond;
+} Deque;
 
 struct mstate{
 	wstate *worker_info;
@@ -153,11 +142,12 @@ struct mstate{
 	Deque *deque;
 } mstate;
 
+Node* Node_new(jcb* job);
 Deque* Deque_new();
 void AddNodeToTail(Deque* deque, jcb* job);
 void AddNodeToHead(Deque* deque, jcb* job);
-jcb* GetNodeFromTail(Deque* deque);
-jcb* GetNodeFromHead(Deque *deque);
+Node* GetNodeFromTail(Deque* deque);
+Node* GetNodeFromHead(Deque *deque);
 int isEmpty(Deque *deque);
 
 /* the register global to store the tid. linked program must avoid using this register in compilation*/
