@@ -11,7 +11,7 @@
 
 
 /*support for primitive types + pointer types only so far*/
-enum return_type{
+enum type{
 	VOID = 0,
 	SIGNED_CHAR,
 	UNSIGNED_CHAR,
@@ -28,9 +28,10 @@ enum return_type{
 	FLOAT,
 	DOUBLE,
 	LONG_DOUBLE,
-	PTR
+	PTR,
+	STRUCT
 };
-
+/*
 enum arg_type{
 	VOID = 0,
 	SIGNED_CHAR,
@@ -52,7 +53,7 @@ enum arg_type{
 
 	STRUCT
 };
-
+*/
 #define ARG(T,D) T, D
 #define STRUCT_ARG(D) STRUCT, sizeof(D), D
 
@@ -86,7 +87,7 @@ typedef struct jcb{
 	void* mmap_addr;
 	int   mmap_size;
 	enum job_status status;
-	enum return_type ret_type;
+	enum type ret_type;
 	void* ret_ptr;
 	int join_counter;
 	struct jcb* parent;
@@ -162,7 +163,7 @@ void init_data_structure();
 void __gregor_do_work_loop();
 void cleanup();
 void do_cleanup(unsigned int eax, unsigned int edx);
-jcb* create_job(void* ret, enum return_type rt, void* return_ptr, void* routine, int num_arg, ...);
+jcb* create_job(void* ret, enum type rt, void* return_ptr, void* routine, int num_arg, ...);
 void add_job_tail(jcb* job);
 void add_job_head(jcb* job);
 /*wrapper of pthread begin*/

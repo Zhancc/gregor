@@ -14,7 +14,7 @@
 * sizeof(arg1),arg1,sizeof(arg2),arg2.....
 * return negative if anything bad happens, or 0 otherwise
 */
-jcb* create_job(void* dummy_ret, enum return_type rt, void* return_ptr, void* routine, int num_arg, ...){
+jcb* create_job(void* dummy_ret, enum type rt, void* return_ptr, void* routine, int num_arg, ...){
 	/* get a stack*/
 	int pagesize = getpagesize();
 
