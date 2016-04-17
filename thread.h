@@ -4,10 +4,27 @@
 #include <pthread.h>
 #include <stdint.h>
 #include "gregor_error.h"
+#include <sys/mman.h>
 
 /*global state data structure begin*/
 #define MAX_QUEUE 40
 #define STACK_ALIGN(T, addr) ((T)(((uint32_t)(addr))&((uint32_t)~0x3)))
+
+typedef struct space {
+    void* pointer;
+    struct space* next;
+} MemorySpace;
+
+MemorySpace* MemorySpace_New(void* freedSpace, int pagesize); 
+
+typedef struct mm {
+    int availNum;
+    MemorySpace* head;
+} MemoryManager;
+
+MemoryManager* MemoryManager_New();
+void* AllocMemory(MemoryManager* m, int pagesize); 
+void FreeMemory(MemoryManager* m, void* space, int pagesize);
 
 
 /*support for primitive types + pointer types only so far*/
@@ -123,14 +140,8 @@ typedef struct wstate{
 *		esi
 *		edi
 */
-
+	MemoryManager* mm;
 } wstate;
-
-typedef struct node {
-    jcb* job;
-    struct node* next;
-    struct node* prev;
-} Node;
 
 typedef struct deque {
 	struct jcb* head_node;
@@ -146,7 +157,6 @@ struct mstate{
 	Deque *deque;
 } mstate;
 
-Node* Node_new(jcb* job);
 Deque* Deque_new();
 void AddNodeToTail(Deque* deque, jcb* job);
 void AddNodeToHead(Deque* deque, jcb* job);

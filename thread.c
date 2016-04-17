@@ -40,6 +40,7 @@ void do_gregor_main(void* p_esp, void* dummy_ret, int* return_ptr, int (*routine
 
 void init_data_structure(){
 	CURRENT_WORKER->cur = CURRENT_WORKER->next_job = NULL;
+	CURRENT_WORKER->mm = MemoryManager_New();
 }
 /*this function should not return, the threads should be blocked in loop and killed by master thread*/
 void* do_gregor_main_init(void* ptr){
@@ -170,14 +171,6 @@ void do_cleanup(unsigned int eax, unsigned int edx){
 	swicth_free_current(esp);
 }
 
-Node* Node_new(jcb* job) {
-	Node *p = (Node *)malloc(sizeof(Node));
-	p->job = job;
-	p->next = NULL;
-	p->prev = NULL;
-	return p;
-}
-
 Deque* Deque_new() {
 	Deque *p = (Deque *)malloc(sizeof(Deque));
 	p->head_node = NULL;
@@ -265,4 +258,40 @@ jcb* GetNodeFromHead(Deque *deque) {
 
 int isEmpty(Deque *deque) {
 	return deque->size == 0;
+}
+
+MemorySpace* MemorySpace_New(void* freedSpace, int pagesize) {
+    MemorySpace* space = (MemorySpace *) malloc(sizeof(MemorySpace));
+    space->pointer = freedSpace;
+    space->next = NULL;
+    return space;
+}
+
+MemoryManager* MemoryManager_New() {
+    MemoryManager* mm = (MemoryManager *) malloc(sizeof(MemoryManager));
+    mm->availNum = 0;
+    mm->head = NULL;
+    return mm;
+}
+
+void* AllocMemory(MemoryManager* m, int pagesize) {
+    void* space = NULL;
+    if (m->availNum == 0) {
+        space = mmap(NULL, pagesize, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_STACK, -1, 0);
+        if (space == (void*)-1) {
+            __gregor_error("mmap failed");
+        }
+    } else {
+        MemorySpace *head = m->head;
+        m->head = head->next;
+        space = head->pointer;
+        m->availNum--;
+    }
+    return space;
+}
+
+void FreeMemory(MemoryManager* m, void* space, int pagesize) {
+    MemorySpace* s = MemorySpace_New(space, pagesize);
+    m->availNum++;
+    m->head = s;
 }

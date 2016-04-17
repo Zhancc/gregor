@@ -78,7 +78,8 @@ jcb* try_pick_work(){
 /* free the address space of current job */
 /* we should have been working at pthread stack at this point */
 void free_current(){
-	munmap(CURRENT->mmap_addr, CURRENT->mmap_size);
+	FreeMemory(CURRENT_WORKER->mm, CURRENT->mmap_addr, CURRENT->mmap_size);
+	// munmap(CURRENT->mmap_addr, CURRENT->mmap_size);
 	CURRENT = NULL;
 }
 
