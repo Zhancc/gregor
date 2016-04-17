@@ -28,11 +28,11 @@ int tt(int argc, char** argv){
 	float ret1;
 	char ret2 = 'C';
 	test3(2,(float)4.0);
-	//spawn(FLOAT,&ret1, test1,1, ARG(double,3.0));
-	spawn(CHAR,&ret2, test2, 1, sizeof(char),'a');
+	spawn(FLOAT,&ret1, test1,1, DOUBLE,3.0);
+	//spawn(CHAR,&ret2, test2, 1, sizeof(char),'a');
 	printf("here\n");
 	__gregor_sync();
-	printf("in tt:%c\n",ret2);
+	printf("in tt:%f\n",ret1);
 	return 3;
 }
 

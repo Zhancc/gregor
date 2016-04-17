@@ -12,8 +12,8 @@ int fib(int n)
 	  return (n);
      else {
 	  int x, y;
-      spawn(INT,&x, fib, 1, sizeof(int),n-1);
-      spawn(INT,&y, fib, 1, sizeof(int),n-2);
+      spawn(INT,&x, fib, 1, INT,n-1);
+      spawn(INT,&y, fib, 1, INT,n-2);
 
 	  __gregor_sync();
 	  return (x + y);
@@ -29,7 +29,7 @@ int g_main(int argc, char *argv[])
 	  exit(1);
      }
      n = atoi(argv[1]);
-     spawn(INT,&result, fib, 1, sizeof(int),n);
+     spawn(INT,&result, fib, 1, INT ,n);
      __gregor_sync();
 
      printf("Result: %d\n", result);
