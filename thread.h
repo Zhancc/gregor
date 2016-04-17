@@ -4,9 +4,26 @@
 #include <pthread.h>
 #include <stdint.h>
 #include "gregor_error.h"
+#include <sys/mman.h>
 
 /*global state data structure begin*/
 #define STACK_ALIGN(T, addr) ((T)(((uint32_t)(addr))&((uint32_t)~0x3)))
+
+typedef struct space {
+    void* pointer;
+    struct space* next;
+} MemorySpace;
+
+MemorySpace* MemorySpace_New(void* freedSpace, int pagesize); 
+
+typedef struct mm {
+    int availNum;
+    MemorySpace* head;
+} MemoryManager;
+
+MemoryManager* MemoryManager_New();
+void* AllocMemory(MemoryManager* m, int pagesize); 
+void FreeMemory(MemoryManager* m, void* space, int pagesize);
 
 
 /*support for primitive types + pointer types only so far*/
@@ -130,15 +147,25 @@ typedef struct wstate{
 *		esi
 *		edi
 */
-
+	MemoryManager* mm;
 } wstate;
 
+<<<<<<< HEAD
 // typedef struct node {
 //     jcb* job;
 //     struct node* next;
 //     struct node* prev;
 // } Node;
 
+=======
+typedef struct deque {
+	struct jcb* head_node;
+	struct jcb* tail_node;
+	int size;
+    pthread_mutex_t queue_lock;
+    pthread_cond_t queue_cond;
+} Deque;
+>>>>>>> 9f8f6bf3eed26110f61ad4a29eb8ec97a0782f3f
 
 struct mstate{
 	wstate *worker_info;
@@ -146,7 +173,10 @@ struct mstate{
 	Deque *deque;
 } mstate;
 
+<<<<<<< HEAD
 // Node* Node_new(jcb* job);
+=======
+>>>>>>> 9f8f6bf3eed26110f61ad4a29eb8ec97a0782f3f
 Deque* Deque_new();
 void Deque_free(Deque* d);
 void AddNodeToTail(Deque* deque, jcb* job);
