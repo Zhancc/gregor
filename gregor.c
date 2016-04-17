@@ -83,8 +83,8 @@ jcb* create_job(void* dummy_ret, enum type rt, void* return_ptr, void* routine, 
 
 	#warning: we rely on the fact that the arguments are passed by stack and stack grows downwards
 	if(num_arg > 0) {
-		char* dst = top;
-		char* src = &num_arg + num_arg + 1;
+		char* dst = (char*)top;
+		char* src = (char*)(&num_arg + num_arg + 1);
 		for (int i = 0 ; i < num_arg; i++){
 			int size = va_arg(vlist, int);
 			int arg_size = 0;
@@ -147,20 +147,20 @@ jcb* create_job(void* dummy_ret, enum type rt, void* return_ptr, void* routine, 
 
 
 #warning: add the job to some queue to be refined
-void add_job_tail(jcb* job){
-	pthread_mutex_lock(&mstate.deque->queue_lock);
-	AddNodeToTail(mstate.deque, job);
-	pthread_mutex_unlock(&mstate.deque->queue_lock);
-	pthread_cond_signal(&mstate.deque->queue_cond);
+void add_job_tail(Deque* deque, jcb* job){
+	pthread_mutex_lock(&deque->queue_lock);
+	AddNodeToTail(deque, job);
+	pthread_mutex_unlock(&deque->queue_lock);
+	pthread_cond_signal(&deque->queue_cond);
 	return ;
 }
 
 #warning: add the job to some queue to be refined
-void add_job_head(jcb* job){
-	pthread_mutex_lock(&mstate.deque->queue_lock);
-	AddNodeToHead(mstate.deque, job);
-	pthread_mutex_unlock(&mstate.deque->queue_lock);
-	pthread_cond_signal(&mstate.deque->queue_cond);
+void add_job_head(Deque* deque, jcb* job){
+	pthread_mutex_lock(&deque->queue_lock);
+	AddNodeToHead(deque, job);
+	pthread_mutex_unlock(&deque->queue_lock);
+	pthread_cond_signal(&deque->queue_cond);
 	return ;
 }
 

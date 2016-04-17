@@ -6,7 +6,6 @@
 #include "gregor_error.h"
 
 /*global state data structure begin*/
-#define MAX_QUEUE 40
 #define STACK_ALIGN(T, addr) ((T)(((uint32_t)(addr))&((uint32_t)~0x3)))
 
 
@@ -97,12 +96,20 @@ typedef struct jcb{
     struct jcb *prev, *next;
 } jcb;
 
-// typedef void* continuation_ptr;
+typedef struct deque {
+	struct jcb* head_node;
+	struct jcb* tail_node;
+	int size;
+    pthread_mutex_t queue_lock;
+    pthread_cond_t queue_cond;
+} Deque;
+
 
 typedef struct wstate{
 	pthread_t threadId;
 
 
+	Deque* deque;
 	// jcb* worklist[MAX_QUEUE];
 	// int queue_head, queue_rear;
 	/* pointer to the currently executing job */
@@ -126,19 +133,12 @@ typedef struct wstate{
 
 } wstate;
 
-typedef struct node {
-    jcb* job;
-    struct node* next;
-    struct node* prev;
-} Node;
+// typedef struct node {
+//     jcb* job;
+//     struct node* next;
+//     struct node* prev;
+// } Node;
 
-typedef struct deque {
-	struct jcb* head_node;
-	struct jcb* tail_node;
-	int size;
-    pthread_mutex_t queue_lock;
-    pthread_cond_t queue_cond;
-} Deque;
 
 struct mstate{
 	wstate *worker_info;
@@ -146,8 +146,9 @@ struct mstate{
 	Deque *deque;
 } mstate;
 
-Node* Node_new(jcb* job);
+// Node* Node_new(jcb* job);
 Deque* Deque_new();
+void Deque_free(Deque* d);
 void AddNodeToTail(Deque* deque, jcb* job);
 void AddNodeToHead(Deque* deque, jcb* job);
 jcb* GetNodeFromTail(Deque* deque);
@@ -169,8 +170,8 @@ void __gregor_do_work_loop();
 void cleanup();
 void do_cleanup(unsigned int eax, unsigned int edx);
 jcb* create_job(void* ret, enum type rt, void* return_ptr, void* routine, int num_arg, ...);
-void add_job_tail(jcb* job);
-void add_job_head(jcb* job);
+void add_job_tail(Deque* deque, jcb* job);
+void add_job_head(Deque* deque, jcb* job);
 /*wrapper of pthread begin*/
 void Pthread_create(pthread_t *restrict thread, const pthread_attr_t *restrict attr, void *(*start_routine)(void*), void *restrict arg);
 
