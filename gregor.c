@@ -17,7 +17,7 @@
 jcb* create_job(void* dummy_ret, enum type rt, void* return_ptr, void* routine, int num_arg, ...){
 	/* get a stack*/
 	#warning: find a stack map from the cache to be implemented
-	void* task_stack = mmap(NULL, pagesize, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_STACK, -1, 0 );
+	void* task_stack = AllocMemory( CURRENT_WORKER->mm ,pagesize);//mmap(NULL, pagesize, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_STACK, -1, 0 );
 
 	if(task_stack == (void*)-1)
 		__gregor_error("mmap failed");

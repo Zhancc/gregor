@@ -40,11 +40,8 @@ void do_gregor_main(void* p_esp, void* dummy_ret, int* return_ptr, int (*routine
 
 void init_data_structure(){
 	CURRENT_WORKER->cur = CURRENT_WORKER->next_job = NULL;
-<<<<<<< HEAD
 	CURRENT_WORKER->deque = Deque_new();
-=======
 	CURRENT_WORKER->mm = MemoryManager_New();
->>>>>>> 9f8f6bf3eed26110f61ad4a29eb8ec97a0782f3f
 }
 /*this function should not return, the threads should be blocked in loop and killed by master thread*/
 void* do_gregor_main_init(void* ptr){
@@ -52,6 +49,7 @@ void* do_gregor_main_init(void* ptr){
 	tid = 0;
 	init_data_structure();
 	jcb* main_job = create_job(NULL,INT,ma->return_ptr,ma->routine, 2 ,sizeof(int),sizeof(char**), ma->argc, ma->argv);
+
 	add_job_tail(CURRENT_WORKER->deque ,main_job);
 	__gregor_do_work_loop();
 	return NULL;
@@ -175,7 +173,6 @@ void do_cleanup(unsigned int eax, unsigned int edx){
 	swicth_free_current(esp);
 }
 
-<<<<<<< HEAD
 // Node* Node_new(jcb* job) {
 // 	Node *p = (Node *)malloc(sizeof(Node));
 // 	p->job = job;
@@ -188,8 +185,6 @@ void Deque_free(Deque* p){
 	free(p);
 }
 
-=======
->>>>>>> 9f8f6bf3eed26110f61ad4a29eb8ec97a0782f3f
 Deque* Deque_new() {
 	Deque *p = (Deque *)malloc(sizeof(Deque));
 	p->head_node = NULL;
@@ -312,5 +307,6 @@ void* AllocMemory(MemoryManager* m, int pagesize) {
 void FreeMemory(MemoryManager* m, void* space, int pagesize) {
     MemorySpace* s = MemorySpace_New(space, pagesize);
     m->availNum++;
+    s->next = m->head;
     m->head = s;
 }

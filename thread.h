@@ -127,8 +127,7 @@ typedef struct wstate{
 
 
 	Deque* deque;
-	// jcb* worklist[MAX_QUEUE];
-	// int queue_head, queue_rear;
+	unsigned int rand;
 	/* pointer to the currently executing job */
 	jcb*  cur;
 
@@ -150,22 +149,13 @@ typedef struct wstate{
 	MemoryManager* mm;
 } wstate;
 
-<<<<<<< HEAD
 // typedef struct node {
 //     jcb* job;
 //     struct node* next;
 //     struct node* prev;
 // } Node;
 
-=======
-typedef struct deque {
-	struct jcb* head_node;
-	struct jcb* tail_node;
-	int size;
-    pthread_mutex_t queue_lock;
-    pthread_cond_t queue_cond;
-} Deque;
->>>>>>> 9f8f6bf3eed26110f61ad4a29eb8ec97a0782f3f
+
 
 struct mstate{
 	wstate *worker_info;
@@ -173,10 +163,7 @@ struct mstate{
 	Deque *deque;
 } mstate;
 
-<<<<<<< HEAD
-// Node* Node_new(jcb* job);
-=======
->>>>>>> 9f8f6bf3eed26110f61ad4a29eb8ec97a0782f3f
+
 Deque* Deque_new();
 void Deque_free(Deque* d);
 void AddNodeToTail(Deque* deque, jcb* job);

@@ -49,28 +49,37 @@ void do_reschedule_reset_current(){
 
 }
 
+void gregor_srand(unsigned int seed){
+	CURRENT_WORKER->rand = seed;
+}
+
+unsigned int gregor_rand(){
+     CURRENT_WORKER->rand = CURRENT_WORKER->rand * 1103515245 + 12345;
+     return (CURRENT_WORKER->rand >> 16);
+}
+
 /*grab the work from its queue or sleep on semaphore until waken up*/
-#warning: to be implemented
+#warning: currently looping looking for the job
 jcb* pick_work(){
 	jcb* node = NULL;
-	pthread_mutex_lock(&mstate.deque->queue_lock);
-	while (isEmpty(mstate.deque)) {
-		pthread_cond_wait(&mstate.deque->queue_cond, &mstate.deque->queue_lock);
+	pthread_mutex_lock(&CURRENT_WORKER->deque->queue_lock);
+	while (isEmpty(CURRENT_WORKER->deque)) {
+		pthread_cond_wait(&CURRENT_WORKER->deque->queue_cond, &mstate.deque->queue_lock);
 	}
-	node = GetNodeFromHead(mstate.deque);
-	pthread_mutex_unlock(&mstate.deque->queue_lock);
+	node = GetNodeFromHead(CURRENT_WORKER->deque);
+	pthread_mutex_unlock(&CURRENT_WORKER->deque->queue_lock);
 	return node;
 }
 
 jcb* try_pick_work(){
 	jcb* node = NULL;
-	pthread_mutex_lock(&mstate.deque->queue_lock);
-	while (isEmpty(mstate.deque)) {
-		pthread_mutex_unlock(&mstate.deque->queue_lock);
+	pthread_mutex_lock(&CURRENT_WORKER->deque->queue_lock);
+	while (isEmpty(CURRENT_WORKER->deque)) {
+		pthread_mutex_unlock(&CURRENT_WORKER->deque->queue_lock);
 		return NULL;
 	}
-	node = GetNodeFromHead(mstate.deque);
-	pthread_mutex_unlock(&mstate.deque->queue_lock);
+	node = GetNodeFromHead(CURRENT_WORKER->deque);
+	pthread_mutex_unlock(&CURRENT_WORKER->deque->queue_lock);
 	return node;
 }
 
