@@ -282,16 +282,19 @@ void* AllocMemory(MemoryManager* m, int pagesize) {
             __gregor_error("mmap failed");
         }
     } else {
-        MemorySpace *head = m->head;
-        m->head = head->next;
-        space = head->pointer;
+		space = m->head;
+		m->head = *(void **)space;
+        // MemorySpace *head = m->head;
+        // m->head = head->next;
+        // space = head->pointer;
         m->availNum--;
     }
     return space;
 }
 
 void FreeMemory(MemoryManager* m, void* space, int pagesize) {
-    MemorySpace* s = MemorySpace_New(space, pagesize);
+    // MemorySpace* s = MemorySpace_New(space, pagesize);
     m->availNum++;
-    m->head = s;
+	*(void **) space = m->head;
+    m->head = space;
 }
