@@ -256,29 +256,8 @@ jcb* GetNodeFromHead(Deque *deque) {
 	return head;
 }
 
-// void print_list_from_head(Node* head) {
-//     while (head != NULL) {
-//         printf("%d\n", head->value);
-//         head = head->next;
-//     }
-// }
-
-// void print_list_from_tail(Node* tail) {
-//     while (tail != NULL) {
-//         printf("%d\n", tail->value);
-//         tail = tail->prev;
-//     }
-// }
-
 int isEmpty(Deque *deque) {
 	return deque->size == 0;
-}
-
-MemorySpace* MemorySpace_New(void* freedSpace, int pagesize) {
-    MemorySpace* space = (MemorySpace *) malloc(sizeof(MemorySpace));
-    space->pointer = freedSpace;
-    space->next = NULL;
-    return space;
 }
 
 MemoryManager* MemoryManager_New() {
