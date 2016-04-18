@@ -40,6 +40,7 @@ void do_gregor_main(void* p_esp, void* dummy_ret, int* return_ptr, int (*routine
 
 void init_data_structure(){
 	CURRENT_WORKER->cur = CURRENT_WORKER->next_job = NULL;
+	CURRENT_WORKER->deque = Deque_new();
 	CURRENT_WORKER->mm = MemoryManager_New();
 }
 /*this function should not return, the threads should be blocked in loop and killed by master thread*/
@@ -48,7 +49,8 @@ void* do_gregor_main_init(void* ptr){
 	tid = 0;
 	init_data_structure();
 	jcb* main_job = create_job(NULL,INT,ma->return_ptr,ma->routine, 2 ,sizeof(int),sizeof(char**), ma->argc, ma->argv);
-	add_job_tail(main_job);
+
+	add_job_tail(CURRENT_WORKER->deque ,main_job);
 	__gregor_do_work_loop();
 	return NULL;
 }
@@ -169,6 +171,18 @@ void do_cleanup(unsigned int eax, unsigned int edx){
 	/* esp should be save in context of work loop, i.e. pthread stack */
 	void* esp = CURRENT_WORKER->p_esp;
 	swicth_free_current(esp);
+}
+
+// Node* Node_new(jcb* job) {
+// 	Node *p = (Node *)malloc(sizeof(Node));
+// 	p->job = job;
+// 	p->next = NULL;
+// 	p->prev = NULL;
+// 	return p;
+// }
+
+void Deque_free(Deque* p){
+	free(p);
 }
 
 Deque* Deque_new() {

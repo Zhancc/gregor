@@ -17,7 +17,7 @@
 jcb* create_job(void* dummy_ret, enum type rt, void* return_ptr, void* routine, int num_arg, ...){
 	/* get a stack*/
 	#warning: find a stack map from the cache to be implemented
-	void* task_stack = mmap(NULL, pagesize, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_STACK, -1, 0 );
+	void* task_stack = AllocMemory( CURRENT_WORKER->mm ,pagesize);//mmap(NULL, pagesize, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_STACK, -1, 0 );
 
 	if(task_stack == (void*)-1)
 		__gregor_error("mmap failed");
@@ -147,20 +147,20 @@ jcb* create_job(void* dummy_ret, enum type rt, void* return_ptr, void* routine, 
 
 
 #warning: add the job to some queue to be refined
-void add_job_tail(jcb* job){
-	pthread_mutex_lock(&mstate.deque->queue_lock);
-	AddNodeToTail(mstate.deque, job);
-	pthread_mutex_unlock(&mstate.deque->queue_lock);
-	pthread_cond_signal(&mstate.deque->queue_cond);
+void add_job_tail(Deque* deque, jcb* job){
+	pthread_mutex_lock(&deque->queue_lock);
+	AddNodeToTail(deque, job);
+	pthread_mutex_unlock(&deque->queue_lock);
+	pthread_cond_signal(&deque->queue_cond);
 	return ;
 }
 
 #warning: add the job to some queue to be refined
-void add_job_head(jcb* job){
-	pthread_mutex_lock(&mstate.deque->queue_lock);
-	AddNodeToHead(mstate.deque, job);
-	pthread_mutex_unlock(&mstate.deque->queue_lock);
-	pthread_cond_signal(&mstate.deque->queue_cond);
+void add_job_head(Deque* deque, jcb* job){
+	pthread_mutex_lock(&deque->queue_lock);
+	AddNodeToHead(deque, job);
+	pthread_mutex_unlock(&deque->queue_lock);
+	pthread_cond_signal(&deque->queue_cond);
 	return ;
 }
 

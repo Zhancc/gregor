@@ -34,4 +34,5 @@ void init(void){
 
 void fini(void){
 	free(mstate.worker_info);
+	Deque_free(mstate.deque);
 }
