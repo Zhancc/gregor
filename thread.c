@@ -257,29 +257,8 @@ jcb* GetNodeFromHead(Deque *deque) {
 	return head;
 }
 
-// void print_list_from_head(Node* head) {
-//     while (head != NULL) {
-//         printf("%d\n", head->value);
-//         head = head->next;
-//     }
-// }
-
-// void print_list_from_tail(Node* tail) {
-//     while (tail != NULL) {
-//         printf("%d\n", tail->value);
-//         tail = tail->prev;
-//     }
-// }
-
 int isEmpty(Deque *deque) {
 	return deque->size == 0;
-}
-
-MemorySpace* MemorySpace_New(void* freedSpace, int pagesize) {
-    MemorySpace* space = (MemorySpace *) malloc(sizeof(MemorySpace));
-    space->pointer = freedSpace;
-    space->next = NULL;
-    return space;
 }
 
 MemoryManager* MemoryManager_New() {
@@ -297,17 +276,19 @@ void* AllocMemory(MemoryManager* m, int pagesize) {
             __gregor_error("mmap failed");
         }
     } else {
-        MemorySpace *head = m->head;
-        m->head = head->next;
-        space = head->pointer;
+		space = m->head;
+		m->head = *(void **)space;
+        // MemorySpace *head = m->head;
+        // m->head = head->next;
+        // space = head->pointer;
         m->availNum--;
     }
     return space;
 }
 
 void FreeMemory(MemoryManager* m, void* space, int pagesize) {
-    MemorySpace* s = MemorySpace_New(space, pagesize);
+    // MemorySpace* s = MemorySpace_New(space, pagesize);
     m->availNum++;
-    s->next = m->head;
-    m->head = s;
+	*(void **) space = m->head;
+    m->head = space;
 }

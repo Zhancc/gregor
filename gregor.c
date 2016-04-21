@@ -80,8 +80,8 @@ jcb* create_job(void* dummy_ret, enum type rt, void* return_ptr, void* routine, 
 
 	#warning: we rely on the fact that the arguments are passed by stack and stack grows downwards
 	if(num_arg > 0) {
-		char* dst = (char*)top;
-		char* src = (char*)(&num_arg + num_arg + 1);
+		char* dst = (char *)top;
+		char* src = (char *)(&num_arg + num_arg + 1);
 		for (int i = 0 ; i < num_arg; i++){
 			int size = va_arg(vlist, int);
 			int arg_size = 0;
