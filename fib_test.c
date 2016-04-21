@@ -37,7 +37,8 @@ int g_main(int argc, char *argv[])
 }
 
 int main(int argc, char *argv[]){
-    // start_t = clock();
+    clock_t start_t, end_t, total_t;
+    start_t = clock();
     gregor_main(NULL,g_main,argc,argv);
     // void* addr;
     // int pagesize = getpagesize();
@@ -46,6 +47,6 @@ int main(int argc, char *argv[]){
     //     free(addr);
     //     // munmap(addr, pagesize);
     // }
-    // end_t = clock();
-    // printf("Total time taken by CPU: %d\n", end_t - start_t);
+    end_t = clock();
+    printf("Total time taken by CPU: %d\n", end_t - start_t);
 }

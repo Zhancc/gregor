@@ -42,6 +42,7 @@ void init_data_structure(){
 	CURRENT_WORKER->cur = CURRENT_WORKER->next_job = NULL;
 	CURRENT_WORKER->deque = Deque_new();
 	CURRENT_WORKER->mm = MemoryManager_New();
+	CURRENT_WORKER->setup = 1;
 }
 /*this function should not return, the threads should be blocked in loop and killed by master thread*/
 void* do_gregor_main_init(void* ptr){

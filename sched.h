@@ -2,6 +2,7 @@
 #define SCHED_H
 
 #include "thread.h"
+jcb* work_steal(int victim);
 jcb* pick_work();
 jcb* try_pick_work();
 void reschedule();

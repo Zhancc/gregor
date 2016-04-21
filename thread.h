@@ -125,9 +125,10 @@ typedef struct deque {
 typedef struct wstate{
 	pthread_t threadId;
 
+	int setup;
 
 	Deque* deque;
-	unsigned int rand;
+	unsigned long rand;
 	/* pointer to the currently executing job */
 	jcb*  cur;
 
@@ -160,6 +161,7 @@ typedef struct wstate{
 struct mstate{
 	wstate *worker_info;
 	sem_t sem;
+	int done;
 	Deque *deque;
 } mstate;
 

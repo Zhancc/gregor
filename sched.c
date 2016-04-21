@@ -1,5 +1,8 @@
 #include "sched.h"
+#include "init.h"
 #include <sys/mman.h>
+#include <unistd.h>
+
 
 
 /* reschedule the current thread to next job, not pthread! the current context should have been saved*/
@@ -43,47 +46,102 @@ void do_reschedule_reset_current(){
 	CURRENT = CURRENT_WORKER->next_job;
 	CURRENT_WORKER->next_job = NULL;
 	if(prev_cur){
-		add_job_tail(CURRENT_WORKER->deque, prev_cur);
+		add_job_head(CURRENT_WORKER->deque, prev_cur);
 	}
 	return;
 
 }
 
-void gregor_srand(unsigned int seed){
+void gregor_srand(unsigned long seed){
 	CURRENT_WORKER->rand = seed;
 }
 
-unsigned int gregor_rand(){
-     CURRENT_WORKER->rand = CURRENT_WORKER->rand * 1103515245 + 12345;
+unsigned long gregor_rand(){
+     CURRENT_WORKER->rand = (unsigned long)(CURRENT_WORKER->rand * 110351)+12345;//1103515245 + 12345;
      return (CURRENT_WORKER->rand >> 16);
 }
 
 /*grab the work from its queue or sleep on semaphore until waken up*/
 #warning: currently looping looking for the job
-jcb* pick_work(){
+jcb* do_pick_work(int sync){
+	// jcb* node = NULL;
+	// pthread_mutex_lock(&CURRENT_WORKER->deque->queue_lock);
+	// while (isEmpty(CURRENT_WORKER->deque)) {
+	// 	pthread_cond_wait(&CURRENT_WORKER->deque->queue_cond, &mstate.deque->queue_lock);
+	// }
+	// node = GetNodeFromHead(CURRENT_WORKER->deque);
+	// pthread_mutex_unlock(&CURRENT_WORKER->deque->queue_lock);
+	// return node;
 	jcb* node = NULL;
-	pthread_mutex_lock(&CURRENT_WORKER->deque->queue_lock);
-	while (isEmpty(CURRENT_WORKER->deque)) {
-		pthread_cond_wait(&CURRENT_WORKER->deque->queue_cond, &mstate.deque->queue_lock);
+	unsigned long victim;	
+	gregor_srand(tid * 162347);
+	while(!node && sync){
+		if(!isEmpty(CURRENT_WORKER->deque)){
+			pthread_mutex_lock(&CURRENT_WORKER->deque->queue_lock);
+			if(isEmpty(CURRENT_WORKER->deque)){
+				pthread_mutex_unlock(&CURRENT_WORKER->deque->queue_lock);
+			}else{
+				node = GetNodeFromHead(CURRENT_WORKER->deque);
+				pthread_mutex_unlock(&CURRENT_WORKER->deque->queue_lock);
+				return node;
+			}
+		}
+		int unvisisted = (1<<(NUM_WORKER)) - 1;
+		unvisisted &= ~(1<<tid);
+		/* steal */
+		while(!node && unvisisted){
+			victim = gregor_rand()%(NUM_WORKER);
+			if(victim!=tid && unvisisted&(1<<victim)){
+				unvisisted &= ~(1<<victim);
+				/* attempt to steal */	
+				node = work_steal(victim);
+
+		
+			}
+		}
+
+		/* at this point, no one has any work to do*/
+		if(sync){
+			usleep(1);
+		}
 	}
-	node = GetNodeFromHead(CURRENT_WORKER->deque);
-	pthread_mutex_unlock(&CURRENT_WORKER->deque->queue_lock);
+
 	return node;
+}
+
+jcb* pick_work(){
+	return do_pick_work(1);
 }
 
 jcb* try_pick_work(){
-	jcb* node = NULL;
-	pthread_mutex_lock(&CURRENT_WORKER->deque->queue_lock);
-	while (isEmpty(CURRENT_WORKER->deque)) {
-		pthread_mutex_unlock(&CURRENT_WORKER->deque->queue_lock);
-		return NULL;
-	}
-	node = GetNodeFromHead(CURRENT_WORKER->deque);
-	pthread_mutex_unlock(&CURRENT_WORKER->deque->queue_lock);
-	return node;
+	return do_pick_work(0);
+
+	// jcb* node = NULL;
+	// pthread_mutex_lock(&CURRENT_WORKER->deque->queue_lock);
+	// while (isEmpty(CURRENT_WORKER->deque)) {
+	// 	pthread_mutex_unlock(&CURRENT_WORKER->deque->queue_lock);
+	// 	return NULL;
+	// }
+	// node = GetNodeFromHead(CURRENT_WORKER->deque);
+	// pthread_mutex_unlock(&CURRENT_WORKER->deque->queue_lock);
+	// return node;
 }
 
+jcb* work_steal(int victim){
+	if(!(mstate.worker_info[victim].setup) || mstate.worker_info[victim].deque->size == 0){
+		return NULL;
+	}
 
+	pthread_mutex_lock(&(mstate.worker_info[victim].deque->queue_lock));
+	if(mstate.worker_info[victim].deque->size == 0){
+		pthread_mutex_unlock(&(mstate.worker_info[victim].deque->queue_lock));	
+		return NULL;
+	}
+	jcb* j = GetNodeFromTail((mstate.worker_info[victim].deque));
+	pthread_mutex_unlock(&(mstate.worker_info[victim].deque->queue_lock));	
+	return j;	
+
+}
 /* free the address space of current job */
 /* we should have been working at pthread stack at this point */
 void free_current(){
