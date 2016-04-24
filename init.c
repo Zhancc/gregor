@@ -8,8 +8,8 @@
 #include "thread.h"
 #include "init.h"
 
-int NUM_PROCESSOR;
-#define NUM_WORKER (NUM_PROCESSOR) //minus one because we include the calling thread
+// int NUM_PROCESSOR;
+// #define NUM_WORKER (NUM_PROCESSOR/2) //minus one because we include the calling thread
 
 
 void init(void){
@@ -36,6 +36,9 @@ void init(void){
 
 
 void fini(void){
+	// for(int i = 0; i < NUM_WORKER; i++){
+	// 	printf("tid %d: num %d\n",i,mstate.worker_info[i].num_work );
+	// }
 //	free(mstate.worker_info);
 //	Deque_free(mstate.deque);
 }

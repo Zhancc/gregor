@@ -43,6 +43,7 @@ void init_data_structure(){
 	CURRENT_WORKER->deque = Deque_new();
 	CURRENT_WORKER->mm = MemoryManager_New();
 	CURRENT_WORKER->setup = 1;
+	CURRENT_WORKER->num_work = 0;
 }
 /*this function should not return, the threads should be blocked in loop and killed by master thread*/
 void* do_gregor_main_init(void* ptr){
@@ -71,6 +72,7 @@ void __gregor_do_work_loop(){
 	while(1){
 		jcb* next = pick_work();
 		/*jump to the work specified*/
+		CURRENT_WORKER->num_work++;
 		if(next==NULL){
 			__gregor_panic("pick a NULL work in __gregor_do_work_loop");
 		}

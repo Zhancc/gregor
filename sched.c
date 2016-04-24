@@ -91,6 +91,9 @@ jcb* do_pick_work(int sync){
 		/* steal */
 		while(!node && unvisisted){
 			victim = gregor_rand()%(NUM_WORKER);
+			// if(unvisisted&(1<<victim)){
+			// 	printf("%d:again\n", tid);
+			// }
 			if(victim!=tid && unvisisted&(1<<victim)){
 				unvisisted &= ~(1<<victim);
 				/* attempt to steal */	
@@ -102,7 +105,13 @@ jcb* do_pick_work(int sync){
 
 		/* at this point, no one has any work to do*/
 		if(sync){
+			// for(int i = 0; i < 12; i++){
+			// 	if(mstate.worker_info[i].setup&&mstate.worker_info[i].deque->size != 0){
+			// 		printf("%d:should steal %d\n",tid,i);
+			// 	}
+			// }
 			usleep(1);
+
 		}
 	}
 

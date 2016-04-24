@@ -134,6 +134,7 @@ typedef struct wstate{
 
 	/*the job for reschedule only*/
 	jcb* next_job;
+	int num_work;
 
 
 	/* the esp of the pthread stack */
