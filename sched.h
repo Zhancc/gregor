@@ -15,4 +15,5 @@ void switch_context_to_new(void* esp);
 void switch_context(void* esp);
 void fstate_save();
 void fstate_restore();
+void gregor_srand(unsigned long seed);
 #endif

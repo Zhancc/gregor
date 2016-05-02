@@ -48,5 +48,5 @@ int main(int argc, char *argv[]){
     //     // munmap(addr, pagesize);
     // }
     end_t = clock();
-    printf("Total time taken by CPU: %d\n", end_t - start_t);
+    printf("Total time taken by CPU: %.3f, %d\n", (double)(end_t - start_t)/CLOCKS_PER_SEC, end_t - start_t);
 }

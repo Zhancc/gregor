@@ -145,21 +145,21 @@ jcb* create_job(void* dummy_ret, enum type rt, void* return_ptr, void* routine, 
 
 #warning: add the job to some queue to be refined
 void add_job_tail(Deque* deque, jcb* job){
-	pthread_mutex_lock(&deque->queue_lock);
+	// pthread_mutex_lock(&deque->queue_lock);
 	AddNodeToTail(deque, job);
-	pthread_mutex_unlock(&deque->queue_lock);
-	pthread_cond_signal(&deque->queue_cond);
+	// pthread_mutex_unlock(&deque->queue_lock);
+	// pthread_cond_signal(&deque->queue_cond);
 	return ;
 }
 
 #warning: add the job to some queue to be refined
-void add_job_head(Deque* deque, jcb* job){
-	pthread_mutex_lock(&deque->queue_lock);
-	AddNodeToHead(deque, job);
-	pthread_mutex_unlock(&deque->queue_lock);
-	pthread_cond_signal(&deque->queue_cond);
-	return ;
-}
+// void add_job_head(Deque* deque, jcb* job){
+// 	pthread_mutex_lock(&deque->queue_lock);
+// 	AddNodeToHead(deque, job);
+// 	pthread_mutex_unlock(&deque->queue_lock);
+// 	pthread_cond_signal(&deque->queue_cond);
+// 	return ;
+// }
 
 
 void set_next_job(jcb* job){

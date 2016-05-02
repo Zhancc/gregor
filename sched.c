@@ -12,6 +12,7 @@
 *  after swap it should enqueue current if it's not NULL and set current to next job and reset next job
 */
 void do_reschedule(void* esp){
+	CURRENT_WORKER->num_work++;
 	/*save the esp first*/
 	if(CURRENT == NULL){
 	/* if CURRENT is NULL, then it's using the pthread stack now*/
@@ -46,19 +47,29 @@ void do_reschedule_reset_current(){
 	CURRENT = CURRENT_WORKER->next_job;
 	CURRENT_WORKER->next_job = NULL;
 	if(prev_cur){
-		add_job_head(CURRENT_WORKER->deque, prev_cur);
+		AddNodeToTail(CURRENT_WORKER->deque, prev_cur);
 	}
 	return;
 
 }
+static const unsigned RNGMOD = ((1ULL << 32) - 5);
+static const unsigned RNGMUL = 69070U;
 
 void gregor_srand(unsigned long seed){
-	CURRENT_WORKER->rand = seed;
+    seed %= RNGMOD;
+    seed += (seed == 0); /* 0 does not belong to the multiplicative
+                            group.  Use 1 instead */
+    CURRENT_WORKER->rand = seed;
+	// CURRENT_WORKER->rand = seed;
 }
 
 unsigned long gregor_rand(){
-     CURRENT_WORKER->rand = (unsigned long)(CURRENT_WORKER->rand * 110351)+12345;//1103515245 + 12345;
-     return (CURRENT_WORKER->rand >> 16);
+    unsigned state =CURRENT_WORKER->rand;
+    state = (unsigned)((RNGMUL * (unsigned long long)state) % RNGMOD);
+    CURRENT_WORKER->rand = state;
+    return state;
+     // CURRENT_WORKER->rand = (unsigned long)(CURRENT_WORKER->rand * 110351)+12345;//1103515245 + 12345;
+     // return (CURRENT_WORKER->rand >> 16);
 }
 
 /*grab the work from its queue or sleep on semaphore until waken up*/
@@ -73,19 +84,21 @@ jcb* do_pick_work(int sync){
 	// pthread_mutex_unlock(&CURRENT_WORKER->deque->queue_lock);
 	// return node;
 	jcb* node = NULL;
-	unsigned long victim;	
-	gregor_srand(tid * 162347);
-	while(!node && sync){
-		if(!isEmpty(CURRENT_WORKER->deque)){
-			pthread_mutex_lock(&CURRENT_WORKER->deque->queue_lock);
-			if(isEmpty(CURRENT_WORKER->deque)){
-				pthread_mutex_unlock(&CURRENT_WORKER->deque->queue_lock);
-			}else{
-				node = GetNodeFromHead(CURRENT_WORKER->deque);
-				pthread_mutex_unlock(&CURRENT_WORKER->deque->queue_lock);
-				return node;
-			}
-		}
+	unsigned long victim;
+	/*check local first*/
+	// if(!isEmpty(CURRENT_WORKER->deque)){
+	// 	pthread_mutex_lock(&CURRENT_WORKER->deque->queue_lock);
+	// 	if(isEmpty(CURRENT_WORKER->deque)){
+	// 		pthread_mutex_unlock(&CURRENT_WORKER->deque->queue_lock);
+	// 	}else{
+	// 		node = GetNodeFromTail(CURRENT_WORKER->deque);
+	// 		pthread_mutex_unlock(&CURRENT_WORKER->deque->queue_lock);
+	// 		return node;
+	// 	}
+	// }
+
+	node = GetNodeFromTail(CURRENT_WORKER->deque);
+	while(!node){
 		int unvisisted = (1<<(NUM_WORKER)) - 1;
 		unvisisted &= ~(1<<tid);
 		/* steal */
@@ -98,20 +111,29 @@ jcb* do_pick_work(int sync){
 				unvisisted &= ~(1<<victim);
 				/* attempt to steal */	
 				node = work_steal(victim);
-
 		
 			}
 		}
 
 		/* at this point, no one has any work to do*/
-		if(sync){
+		if(sync && node == NULL){
 			// for(int i = 0; i < 12; i++){
 			// 	if(mstate.worker_info[i].setup&&mstate.worker_info[i].deque->size != 0){
 			// 		printf("%d:should steal %d\n",tid,i);
 			// 	}
 			// }
+			// if(tid == 32){
+			// 	for( int i = 0; i < NUM_WORKER; i++){
+			// 		if((mstate.worker_info[victim].setup) && mstate.worker_info[victim].deque->size){
+			// 			printf("%d have %d:%s\n",i,mstate.worker_info[victim].deque->size,"fail again 32" );
+
+			// 		}
+			// 	}
+			// }
 			usleep(1);
 
+		}else{
+			break;
 		}
 	}
 
@@ -137,17 +159,17 @@ jcb* try_pick_work(){
 }
 
 jcb* work_steal(int victim){
-	if(!(mstate.worker_info[victim].setup) || mstate.worker_info[victim].deque->size == 0){
+	if(!(mstate.worker_info[victim].setup)){
 		return NULL;
 	}
 
-	pthread_mutex_lock(&(mstate.worker_info[victim].deque->queue_lock));
-	if(mstate.worker_info[victim].deque->size == 0){
-		pthread_mutex_unlock(&(mstate.worker_info[victim].deque->queue_lock));	
-		return NULL;
-	}
-	jcb* j = GetNodeFromTail((mstate.worker_info[victim].deque));
-	pthread_mutex_unlock(&(mstate.worker_info[victim].deque->queue_lock));	
+	// pthread_mutex_lock(&(mstate.worker_info[victim].deque->queue_lock));
+	// if(mstate.worker_info[victim].deque->size == 0){
+	// 	pthread_mutex_unlock(&(mstate.worker_info[victim].deque->queue_lock));	
+	// 	return NULL;
+	// }
+	jcb* j = GetNodeFromHead((mstate.worker_info[victim].deque));
+	// pthread_mutex_unlock(&(mstate.worker_info[victim].deque->queue_lock));	
 	return j;	
 
 }

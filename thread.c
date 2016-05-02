@@ -1,8 +1,10 @@
+// #define _GNU_SOURCE
 #include <unistd.h>
 #include "thread.h"
 #include "gregor.h"
 #include "sched.h"
 #include "init.h"
+// #include <pthread.h>
 
 typedef struct main_arg{
 	void* p_esp;
@@ -39,11 +41,17 @@ void do_gregor_main(void* p_esp, void* dummy_ret, int* return_ptr, int (*routine
 }
 
 void init_data_structure(){
+	// cpu_set_t cpuset;
+	// CPU_ZERO(&cpuset);
+	// CPU_SET(tid%NUM_PROCESSOR, &cpuset);
+	// pthread_setaffinity_np(pthread_self(),sizeof(cpu_set_t),&cpuset);
 	CURRENT_WORKER->cur = CURRENT_WORKER->next_job = NULL;
 	CURRENT_WORKER->deque = Deque_new();
 	CURRENT_WORKER->mm = MemoryManager_New();
 	CURRENT_WORKER->setup = 1;
 	CURRENT_WORKER->num_work = 0;
+	gregor_srand(tid + 1);
+
 }
 /*this function should not return, the threads should be blocked in loop and killed by master thread*/
 void* do_gregor_main_init(void* ptr){
@@ -72,7 +80,7 @@ void __gregor_do_work_loop(){
 	while(1){
 		jcb* next = pick_work();
 		/*jump to the work specified*/
-		CURRENT_WORKER->num_work++;
+		//CURRENT_WORKER->num_work++;
 		if(next==NULL){
 			__gregor_panic("pick a NULL work in __gregor_do_work_loop");
 		}
@@ -193,6 +201,8 @@ Deque* Deque_new() {
 	p->head_node = NULL;
 	p->tail_node = NULL;
 	p->size = 0;
+	p->T = 0;
+	p->H = 0;
 	pthread_cond_init(&p->queue_cond, NULL);
 	pthread_mutex_init(&p->queue_lock, NULL);
 	return p;
@@ -210,27 +220,40 @@ void AddNodeToTail(Deque* deque, jcb* job) {
 		job->prev = prev;
 		deque->tail_node = job;
 	}
-	deque->size++;
+	// deque->size++;
+	__sync_fetch_and_add(&(deque->T),1);
 }
 
-void AddNodeToHead(Deque* deque, jcb* job) {
-	//Node* node = Node_new(job);
-	job->next = job->prev = NULL;
-	if (deque->head_node == NULL) {
-		deque->head_node = job;
-		deque->tail_node = job;
-	} else {
-		jcb* next = deque->head_node;
-		job->next = next;
-		next->prev = job;
-		deque->head_node = job;
-	}
-	deque->size++;
-}
+// void AddNodeToHead(Deque* deque, jcb* job) {
+// 	//Node* node = Node_new(job);
+// 	job->next = job->prev = NULL;
+// 	if (deque->head_node == NULL) {
+// 		deque->head_node = job;
+// 		deque->tail_node = job;
+// 	} else {
+// 		jcb* next = deque->head_node;
+// 		job->next = next;
+// 		next->prev = job;
+// 		deque->head_node = job;
+// 	}
+// 	deque->size++;
+// }
 
 
 jcb* GetNodeFromTail(Deque* deque) {
-	if (deque->size == 0) return NULL;
+	__sync_fetch_and_sub(&(deque->T),1);
+	if(deque->H > deque->T){
+		__sync_fetch_and_add(&(deque->T),1);
+		pthread_mutex_lock(&deque->queue_lock);
+		__sync_fetch_and_sub(&(deque->T),1);
+		if(deque->H > deque->T){
+			__sync_fetch_and_add(&(deque->T),1);
+			pthread_mutex_unlock(&deque->queue_lock);
+			return NULL;
+		}
+		pthread_mutex_unlock(&deque->queue_lock);
+
+	}
 	jcb* prev = deque->tail_node;
 
 	if (prev->prev == NULL) {
@@ -240,12 +263,22 @@ jcb* GetNodeFromTail(Deque* deque) {
 	}
 	deque->tail_node = prev->prev;
 	prev->prev = prev->next = NULL;
-	deque->size--;
+	// deque->size--;
 	return prev;
 }
 
+
+/*steal*/
 jcb* GetNodeFromHead(Deque *deque) {
-	if (deque->size == 0) return NULL;
+	pthread_mutex_lock(&deque->queue_lock);
+	__sync_fetch_and_add(&(deque->H), 1);
+	if( deque->H > deque->T ){
+		/* empty list*/
+		__sync_fetch_and_sub(&(deque->H),1);
+		pthread_mutex_unlock(&deque->queue_lock);
+		return NULL;	
+	}
+	/*guarantee to have at least one element*/
 	jcb *head = deque->head_node;
 
 	if (head->next == NULL) {
@@ -255,13 +288,15 @@ jcb* GetNodeFromHead(Deque *deque) {
 	}
 	deque->head_node = head->next;
 	head->prev = head->next = NULL;
-	deque->size--;
+	// deque->size--;
+	pthread_mutex_unlock(&deque->queue_lock);
+
 	return head;
 }
 
-int isEmpty(Deque *deque) {
-	return deque->size == 0;
-}
+// int isEmpty(Deque *deque) {
+// 	return deque->size == 0;
+// }
 
 MemoryManager* MemoryManager_New() {
     MemoryManager* mm = (MemoryManager *) malloc(sizeof(MemoryManager));

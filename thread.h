@@ -116,9 +116,11 @@ typedef struct jcb{
 typedef struct deque {
 	struct jcb* head_node;
 	struct jcb* tail_node;
-	int size;
+	int size; //obsolete
     pthread_mutex_t queue_lock;
     pthread_cond_t queue_cond;
+    long long H;
+    long long T; 
 } Deque;
 
 
@@ -170,10 +172,10 @@ struct mstate{
 Deque* Deque_new();
 void Deque_free(Deque* d);
 void AddNodeToTail(Deque* deque, jcb* job);
-void AddNodeToHead(Deque* deque, jcb* job);
+// void AddNodeToHead(Deque* deque, jcb* job);
 jcb* GetNodeFromTail(Deque* deque);
 jcb* GetNodeFromHead(Deque *deque);
-int isEmpty(Deque *deque);
+// int isEmpty(Deque *deque);
 
 /* the register global to store the tid. linked program must avoid using this register in compilation*/
 register int tid __asm__("ebx");
@@ -190,8 +192,8 @@ void __gregor_do_work_loop();
 void cleanup();
 void do_cleanup(unsigned int eax, unsigned int edx);
 jcb* create_job(void* ret, enum type rt, void* return_ptr, void* routine, int num_arg, ...);
-void add_job_tail(Deque* deque, jcb* job);
-void add_job_head(Deque* deque, jcb* job);
+// void add_job_tail(Deque* deque, jcb* job);
+// void add_job_head(Deque* deque, jcb* job);
 /*wrapper of pthread begin*/
 void Pthread_create(pthread_t *restrict thread, const pthread_attr_t *restrict attr, void *(*start_routine)(void*), void *restrict arg);
 
