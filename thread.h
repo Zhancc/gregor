@@ -192,7 +192,9 @@ void __gregor_do_work_loop();
 void cleanup();
 void do_cleanup(unsigned int eax, unsigned int edx);
 jcb* create_job(void* ret, enum type rt, void* return_ptr, void* routine, int num_arg, ...);
-// void add_job_tail(Deque* deque, jcb* job);
+void add_job_tail(Deque* deque, jcb* job);
+void atomicIncrement(int* m);
+void atomicDecrement(int* m);
 // void add_job_head(Deque* deque, jcb* job);
 /*wrapper of pthread begin*/
 void Pthread_create(pthread_t *restrict thread, const pthread_attr_t *restrict attr, void *(*start_routine)(void*), void *restrict arg);

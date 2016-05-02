@@ -232,6 +232,7 @@ void AddNodeToTail(Deque* deque, jcb* job) {
 		deque->tail_node = job;
 	}
 	// deque->size++;
+	// atomicIncrement(&(deque->size));
 	atomicIncrement(&(deque->T));
 }
 
@@ -275,6 +276,8 @@ jcb* GetNodeFromTail(Deque* deque) {
 	deque->tail_node = prev->prev;
 	prev->prev = prev->next = NULL;
 	// deque->size--;
+	// atomicDecrement(&(deque->size));
+
 	return prev;
 }
 
@@ -302,6 +305,7 @@ jcb* GetNodeFromHead(Deque *deque) {
 	head->prev = head->next = NULL;
 	// deque->size--;
 	pthread_mutex_unlock(&deque->queue_lock);
+	// atomicDecrement(&(deque->size));
 
 	return head;
 }
