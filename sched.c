@@ -96,8 +96,13 @@ jcb* do_pick_work(int sync){
 	// 		return node;
 	// 	}
 	// }
+	if(CURRENT_WORKER->deque->T > CURRENT_WORKER->deque->H){
+			node = GetNodeFromTail(CURRENT_WORKER->deque);
+			if(node)
+				return node;
+	}
 
-	node = GetNodeFromTail(CURRENT_WORKER->deque);
+
 	while(!node){
 		int unvisisted = (1<<(NUM_WORKER)) - 1;
 		unvisisted &= ~(1<<tid);

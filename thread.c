@@ -209,18 +209,27 @@ Deque* Deque_new() {
 }
 
 
-void atomicIncrement(int* m){
-	asm volatile("lock incl %0"
-	             : "+m" (*m));
-}
-void atomicDecrement(int* m){
-	asm volatile("lock decl %0"
-	             : "+m" (*m));
-}
+#define atomicIncrement(m) \
+	asm volatile("lock incl %0"\
+	             : "+m" (*(m)));
+
+#define atomicDecrement(m) \
+	asm volatile("lock decl %0"\
+	             : "+m" (*(m)));
+
+// void atomicIncrement(volatile int* m){
+// 	asm volatile("lock incl %0"
+// 	             : "+m" (*m));
+// }
+// void atomicDecrement(volatile int* m){
+// 	asm volatile("lock decl %0"
+// 	             : "+m" (*m));
+// }
 
 
 void AddNodeToTail(Deque* deque, jcb* job) {
 	// Node* node = Node_new(job);
+
 	job->next = job->prev = NULL;
 	if (deque->tail_node == NULL) {
 		deque->head_node = job;
@@ -234,6 +243,7 @@ void AddNodeToTail(Deque* deque, jcb* job) {
 	// deque->size++;
 	// atomicIncrement(&(deque->size));
 	atomicIncrement(&(deque->T));
+
 }
 
 // void AddNodeToHead(Deque* deque, jcb* job) {
@@ -295,7 +305,7 @@ jcb* GetNodeFromHead(Deque *deque) {
 	}
 	/*guarantee to have at least one element*/
 	jcb *head = deque->head_node;
-
+	
 	if (head->next == NULL) {
 		deque->tail_node = NULL;
 	} else {
