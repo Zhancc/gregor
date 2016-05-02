@@ -119,8 +119,8 @@ typedef struct deque {
 	int size; //obsolete
     pthread_mutex_t queue_lock;
     pthread_cond_t queue_cond;
-    long long H;
-    long long T; 
+    int H;
+    int T; 
 } Deque;
 
 
