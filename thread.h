@@ -9,6 +9,7 @@
 /*global state data structure begin*/
 #define STACK_ALIGN(T, addr) ((T)(((uint32_t)(addr))&((uint32_t)~0x3)))
 
+
 typedef struct space {
     void* pointer;
     struct space* next;
@@ -175,7 +176,7 @@ void AddNodeToTail(Deque* deque, jcb* job);
 // void AddNodeToHead(Deque* deque, jcb* job);
 jcb* GetNodeFromTail(Deque* deque);
 jcb* GetNodeFromHead(Deque *deque);
-// int isEmpty(Deque *deque);
+int isEmpty(Deque *deque);
 
 /* the register global to store the tid. linked program must avoid using this register in compilation*/
 register int tid __asm__("ebx");
@@ -193,6 +194,14 @@ void cleanup();
 void do_cleanup(unsigned int eax, unsigned int edx);
 jcb* create_job(void* ret, enum type rt, void* return_ptr, void* routine, int num_arg, ...);
 void add_job_tail(Deque* deque, jcb* job);
+#define atomicIncrement(m) \
+	asm volatile("lock incl %0"\
+	             : "+m" (*(m)));
+
+#define atomicDecrement(m) \
+	asm volatile("lock decl %0"\
+	             : "+m" (*(m)));
+	             
 // void atomicIncrement(volatile int* m);
 // void atomicDecrement(volatile int* m);
 // void add_job_head(Deque* deque, jcb* job);

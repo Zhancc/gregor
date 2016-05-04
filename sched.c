@@ -31,6 +31,7 @@ void do_reschedule(void* esp){
 				switch_context(CURRENT_WORKER->next_job->esp);
 				break;
 			case SYNC:
+				switch_context(CURRENT_WORKER->next_job->esp);
 				__gregor_panic("switch to a synced job");
 				break;
 		}
@@ -96,14 +97,15 @@ jcb* do_pick_work(int sync){
 	// 		return node;
 	// 	}
 	// }
-	if(CURRENT_WORKER->deque->T > CURRENT_WORKER->deque->H){
-			node = GetNodeFromTail(CURRENT_WORKER->deque);
-			if(node)
-				return node;
-	}
 
 
 	while(!node){
+		if(!isEmpty(CURRENT_WORKER->deque)){
+				node = GetNodeFromTail(CURRENT_WORKER->deque);
+				if(node)
+					return node;
+		}
+
 		int unvisisted = (1<<(NUM_WORKER)) - 1;
 		unvisisted &= ~(1<<tid);
 		/* steal */
@@ -186,16 +188,18 @@ void free_current(){
 	CURRENT = NULL;
 }
 
+
+#warning: x87 registers seem to be caller-saved, so worry
 void fstate_save(){
-	__asm__(" fxsave %0"
-		:
-		:"m"(CURRENT->fstate)
-		);
+	// __asm__(" fxsave %0"
+	// 	:
+	// 	:"m"(CURRENT->fstate)
+	// 	);
 }
 
 void fstate_restore(){
-	__asm__(" fxrstor %0"
-		:
-		:"m"(CURRENT->fstate)
-		);
+	// __asm__(" fxrstor %0"
+	// 	:
+	// 	:"m"(CURRENT->fstate)
+	// 	);
 }

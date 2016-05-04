@@ -32,7 +32,7 @@ jcb* create_job(void* dummy_ret, enum type rt, void* return_ptr, void* routine, 
 	job->prev = job->next = NULL;
 	/*update the join counter of the parrent*/
 	if(CURRENT!=NULL)
-		__sync_fetch_and_add(&(job->parent->join_counter), 1);
+		atomicIncrement(&(job->parent->join_counter));
 
 	/* top of stack */
 	int* top = STACK_ALIGN(int *, job);
@@ -169,7 +169,7 @@ void set_next_job(jcb* job){
 /* wait until all the descendents complete */
 #warning: refinement: currently just enqueue the current work
 int __gregor_sync(){
-
+	CURRENT->status = SYNC;
 	while(CURRENT->join_counter){
 		jcb* job = try_pick_work();
 		if(!job){

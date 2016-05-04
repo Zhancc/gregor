@@ -37,8 +37,10 @@ int g_main(int argc, char *argv[])
 }
 
 int main(int argc, char *argv[]){
-    clock_t start_t, end_t, total_t;
-    start_t = clock();
+    struct timespec start, finish;
+    double elapsed;
+
+    clock_gettime(CLOCK_MONOTONIC, &start);
     gregor_main(NULL,g_main,argc,argv);
     // void* addr;
     // int pagesize = getpagesize();
@@ -47,6 +49,8 @@ int main(int argc, char *argv[]){
     //     free(addr);
     //     // munmap(addr, pagesize);
     // }
-    end_t = clock();
-    printf("Total time taken by CPU: %.3f, %d\n", (double)(end_t - start_t)/CLOCKS_PER_SEC, end_t - start_t);
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+    elapsed = (finish.tv_sec - start.tv_sec);
+    elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+    printf("Total time taken by CPU: %.3f\n", elapsed);
 }
