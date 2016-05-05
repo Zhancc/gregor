@@ -104,15 +104,12 @@ jcb* do_pick_work(int sync){
 				// if(node)
 				// 	return node;
 
-	node = GetNodeFromTail(CURRENT_WORKER->deque);
-	if(node)
-		return node;
 	while(!node){
-		// if(!isEmpty(CURRENT_WORKER->deque)){
-				// node = GetNodeFromTail(CURRENT_WORKER->deque);
-				// if(node)
-				// 	return node;
-		// }
+		if(!isEmpty(CURRENT_WORKER->deque)){
+				node = GetNodeFromTail(CURRENT_WORKER->deque);
+				if(node)
+					return node;
+		}
 
 		int unvisisted = (1<<(NUM_WORKER)) - 1;
 		unvisisted &= ~(1<<tid);
