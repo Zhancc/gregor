@@ -21,7 +21,6 @@ float test3(int a,...){
 	va_start(varlist, a);
 	double size = va_arg(varlist, double);
 	return size;
-
 }
 
 int tt(int argc, char** argv){
