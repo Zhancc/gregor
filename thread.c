@@ -234,6 +234,7 @@ void atomicDecrement(int *m) {
 void AddNodeToTail(Deque *deque, jcb *job) {
     // This function is for
     // Node* node = Node_new(job);
+    pthread_mutex_lock(&deque->queue_lock);
     job->next = job->prev = NULL;
     if (deque->tail_node == NULL) {
         deque->head_node = job;
@@ -246,6 +247,7 @@ void AddNodeToTail(Deque *deque, jcb *job) {
     }
     // deque->size++;
     // atomicIncrement(&(deque->size));
+    pthread_mutex_unlock(&deque->queue_lock);
     atomicIncrement(&(deque->T));
 }
 
@@ -266,17 +268,17 @@ void AddNodeToTail(Deque *deque, jcb *job) {
 
 
 jcb *GetNodeFromTail(Deque *deque) {
+    pthread_mutex_lock(&deque->queue_lock);
+
     atomicDecrement(&(deque->T));
     if (deque->H > deque->T) {
         atomicIncrement(&(deque->T));
-        pthread_mutex_lock(&deque->queue_lock);
         atomicDecrement(&(deque->T));
         if (deque->H > deque->T) {
             atomicIncrement(&(deque->T));
             pthread_mutex_unlock(&deque->queue_lock);
             return NULL;
         }
-        pthread_mutex_unlock(&deque->queue_lock);
 
     }
     jcb *prev = deque->tail_node;
@@ -290,6 +292,7 @@ jcb *GetNodeFromTail(Deque *deque) {
     prev->prev = prev->next = NULL;
     // deque->size--;
     // atomicDecrement(&(deque->size));
+    pthread_mutex_unlock(&deque->queue_lock);
 
     return prev;
 }
