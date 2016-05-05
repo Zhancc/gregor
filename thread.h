@@ -102,15 +102,14 @@ enum job_status{
 #define CURRENT   (CURRENT_WORKER->cur)
 /* control block of each job reside at the top address of its stack*/
 typedef struct jcb{
+	int join_counter;
 	void* esp;
 	void* mmap_addr;
 	int   mmap_size;
 	enum job_status status;
 	enum type ret_type;
 	void* ret_ptr;
-	int join_counter;
 	struct jcb* parent;
-	char fstate[512] __attribute__((aligned(16)));
     struct jcb *prev, *next;
 } jcb;
 
@@ -173,7 +172,7 @@ struct mstate{
 Deque* Deque_new();
 void Deque_free(Deque* d);
 void AddNodeToTail(Deque* deque, jcb* job);
-// void AddNodeToHead(Deque* deque, jcb* job);
+void AddNodeToHead(Deque* deque, jcb* job);
 jcb* GetNodeFromTail(Deque* deque);
 jcb* GetNodeFromHead(Deque *deque);
 int isEmpty(Deque *deque);

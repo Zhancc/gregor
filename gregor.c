@@ -100,25 +100,32 @@ jcb* create_job(void* dummy_ret, enum type rt, void* return_ptr, void* routine, 
 				case LONG_INT:
 				case UNSIGNED_LONG_INT:
 				case PTR:
-					memcpy(dst, src, 4);
+					*(void**)dst = *(void**)src;
+					// memcpy(dst, src, 4);
 					dst += 4;
 					src += 4;
 					break;
 				case FLOAT:
 					temp = (float) (*(double *) src);
-					memcpy(dst, &temp, 4);
+					*(float*)dst = temp;
+					// memcpy(dst, &temp, 4);
 					dst += 4;
 					src += 8;
 					break;
 				case LONG_LONG_INT:
 				case UNSIGNED_LONG_LONG_INT:
+					*(unsigned long long int*)dst = *(unsigned long long int*)src;
+					dst += 8;
+					src += 8;
 				case DOUBLE:
-					memcpy(dst, src, 8);
+					*(double*)dst = *(double*)src;
+					// memcpy(dst, src, 8);
 					dst += 8;
 					src += 8;
 					break;
 				case LONG_DOUBLE:
-					memcpy(dst, src, sizeof(long double));
+					*(long double*)dst = *(long double*)src;
+					// memcpy(dst, src, sizeof(long double));
 					dst += sizeof(long double);
 					src += sizeof(long double);
 				case STRUCT:
@@ -179,6 +186,7 @@ int __gregor_sync(){
 		set_next_job(job);
 		reschedule();
 	}
+	CURRENT->status = RUNNING;
 
 	return 1;
 }
