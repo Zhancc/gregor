@@ -5,7 +5,7 @@
 #include "sched.h"
 #include "init.h"
 
-#define SEGMENT 4
+#define SEGMENT 2
 
 typedef struct main_arg {
     void *p_esp;
