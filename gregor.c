@@ -6,7 +6,7 @@
 #include "gregor_error.h"
 #include "thread.h"
 #include "sched.h"
-
+#define SEGMENT 4
 
 /*
 * the second argument being function ptr,
@@ -22,9 +22,9 @@ jcb *create_job(void *dummy_ret, enum type rt, void *return_ptr, void *routine, 
 
     /* The end of stack is used as jcb */
     /* Initialize job control block */
-    jcb *job = (jcb *) ((char *) task_stack + pagesize) - 1;
+    jcb *job = (jcb *) ((char *) task_stack + pagesize / SEGMENT) - 1;
     job->mmap_addr = task_stack;
-    job->mmap_size = pagesize;
+    job->mmap_size = pagesize / SEGMENT;
     job->status = SPAWN;
     job->ret_type = rt;
     job->ret_ptr = return_ptr;
