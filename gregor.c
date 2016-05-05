@@ -19,14 +19,14 @@
 jcb *create_job(void *dummy_ret, enum type rt, void *return_ptr, void *routine, int num_arg, ...) {
     /* get a stack*/
     void *task_stack = AllocMemory(CURRENT_WORKER->mm,
-                                   pagesize);//mmap(NULL, pagesize, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_STACK, -1, 0 );
+                                   pagesize);
 
 
     /* the end of stack is used as jcb*/
     /*initialize job control block*/
-    jcb *job = (jcb *) ((char *) task_stack + pagesize) - 1;
+    jcb *job = (jcb *) ((char *) task_stack + pagesize / SEGMENT) - 1;
     job->mmap_addr = task_stack;
-    job->mmap_size = pagesize;
+    job->mmap_size = pagesize / SEGMENT;
     job->status = SPAWN;
     job->ret_type = rt;
     job->ret_ptr = return_ptr;
