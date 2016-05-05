@@ -343,7 +343,7 @@ void *AllocMemory(MemoryManager *m, int pagesize) {
 
         m->head = space;
 
-        for (int i = 0; i < SEGMENT; ++i) {
+        for (int i = 0; i < SEGMENT - 1; ++i) {
             ((Block *) space)->next = (Block *)((char *)space + pagesize / SEGMENT);
             space = ((Block *)space)->next;
         }
