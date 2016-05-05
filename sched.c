@@ -12,7 +12,6 @@
 *  after swap it should enqueue current if it's not NULL and set current to next job and reset next job
 */
 void do_reschedule(void *esp) {
-    CURRENT_WORKER->num_work++;
     /*save the esp first*/
     if (CURRENT == NULL) {
         /* if CURRENT is NULL, then it's using the pthread stack now*/
@@ -31,6 +30,8 @@ void do_reschedule(void *esp) {
                 switch_context(CURRENT_WORKER->next_job->esp);
                 break;
             case SYNC:
+                CURRENT_WORKER->num_work++;
+                switch_context(CURRENT_WORKER->next_job->esp);
                 __gregor_panic("switch to a synced job");
                 break;
         }
@@ -47,10 +48,12 @@ void do_reschedule_reset_current() {
     CURRENT = CURRENT_WORKER->next_job;
     CURRENT_WORKER->next_job = NULL;
     if (prev_cur) {
-        AddNodeToTail(CURRENT_WORKER->deque, prev_cur);
+        if (prev_cur->status == RUNNING)
+            AddNodeToTail(CURRENT_WORKER->deque, prev_cur);
+        else
+            AddNodeToTail(CURRENT_WORKER->deque, prev_cur);
     }
     return;
-
 }
 
 static const unsigned RNGMOD = ((1ULL << 32) - 5);
@@ -98,9 +101,17 @@ jcb *do_pick_work(int sync) {
     // 		return node;
     // 	}
     // }
+    // node = GetNodeFromTail(CURRENT_WORKER->deque);
+    // if(node)
+    // 	return node;
 
-    node = GetNodeFromTail(CURRENT_WORKER->deque);
     while (!node) {
+        if (!isEmpty(CURRENT_WORKER->deque)) {
+            node = GetNodeFromTail(CURRENT_WORKER->deque);
+            if (node)
+                return node;
+        }
+
         int unvisisted = (1 << (NUM_WORKER)) - 1;
         unvisisted &= ~(1 << tid);
         /* steal */
@@ -183,16 +194,19 @@ void free_current() {
     CURRENT = NULL;
 }
 
+
+#warning: x87 registers seem to be caller-saved, so worry
+
 void fstate_save() {
-    __asm__(" fxsave %0"
-    :
-    :"m"(CURRENT->fstate)
-    );
+    // __asm__(" fxsave %0"
+    // 	:
+    // 	:"m"(CURRENT->fstate)
+    // 	);
 }
 
 void fstate_restore() {
-    __asm__(" fxrstor %0"
-    :
-    :"m"(CURRENT->fstate)
-    );
+    // __asm__(" fxrstor %0"
+    // 	:
+    // 	:"m"(CURRENT->fstate)
+    // 	);
 }

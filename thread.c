@@ -100,6 +100,7 @@ void __gregor_do_work_loop() {
     }
 }
 
+
 /* cleanup should not return, it would switch back to __gregor_do_work or main function*/
 void do_cleanup(unsigned int eax, unsigned int edx) {
     unsigned char al = (unsigned char) eax;
@@ -174,15 +175,15 @@ void do_cleanup(unsigned int eax, unsigned int edx) {
     }
 
 #warning: refinement: currently just yield the processor
-    while (CURRENT->join_counter) {
-        usleep(1);
-    }
+    __gregor_sync();
 
     if (CURRENT->parent) {
         int ret;
         jcb *j = CURRENT->parent;
-        ret = __sync_fetch_and_sub(&(j->join_counter), 1);
-        if (ret <= 0) {
+        atomicDecrement(&(j->join_counter));
+        ret = j->join_counter;
+
+        if (ret < 0) {
             __gregor_panic("join_counter incorrect");
         }
     } else {
@@ -220,21 +221,20 @@ Deque *Deque_new() {
 }
 
 
-void atomicIncrement(int *m) {
-    asm volatile("lock incl %0"
-    : "+m" (*m));
-}
-
-void atomicDecrement(int *m) {
-    asm volatile("lock decl %0"
-    : "+m" (*m));
-}
+// void atomicIncrement(volatile int* m){
+// 	asm volatile("lock incl %0"
+// 	             : "+m" (*m));
+// }
+// void atomicDecrement(volatile int* m){
+// 	asm volatile("lock decl %0"
+// 	             : "+m" (*m));
+// }
 
 
 void AddNodeToTail(Deque *deque, jcb *job) {
-    // This function is for
     // Node* node = Node_new(job);
-    pthread_mutex_lock(&deque->queue_lock);
+    // pthread_mutex_lock(&deque->queue_lock);
+
     job->next = job->prev = NULL;
     if (deque->tail_node == NULL) {
         deque->head_node = job;
@@ -247,38 +247,44 @@ void AddNodeToTail(Deque *deque, jcb *job) {
     }
     // deque->size++;
     // atomicIncrement(&(deque->size));
-    pthread_mutex_unlock(&deque->queue_lock);
     atomicIncrement(&(deque->T));
+
+    // pthread_mutex_unlock(&deque->queue_lock);
 }
 
-// void AddNodeToHead(Deque* deque, jcb* job) {
-// 	//Node* node = Node_new(job);
-// 	job->next = job->prev = NULL;
-// 	if (deque->head_node == NULL) {
-// 		deque->head_node = job;
-// 		deque->tail_node = job;
-// 	} else {
-// 		jcb* next = deque->head_node;
-// 		job->next = next;
-// 		next->prev = job;
-// 		deque->head_node = job;
-// 	}
-// 	deque->size++;
-// }
+void AddNodeToHead(Deque *deque, jcb *job) {
+    //Node* node = Node_new(job);
+    pthread_mutex_lock(&deque->queue_lock);
 
+    job->next = job->prev = NULL;
+    if (deque->head_node == NULL) {
+        deque->head_node = job;
+        deque->tail_node = job;
+    } else {
+        jcb *next = deque->head_node;
+        job->next = next;
+        next->prev = job;
+        deque->head_node = job;
+    }
+    atomicIncrement(&(deque->T));
+
+    pthread_mutex_unlock(&deque->queue_lock);
+}
 
 jcb *GetNodeFromTail(Deque *deque) {
-    pthread_mutex_lock(&deque->queue_lock);
+    // pthread_mutex_lock(&deque->queue_lock);
 
     atomicDecrement(&(deque->T));
     if (deque->H > deque->T) {
         atomicIncrement(&(deque->T));
+        pthread_mutex_lock(&deque->queue_lock);
         atomicDecrement(&(deque->T));
         if (deque->H > deque->T) {
             atomicIncrement(&(deque->T));
             pthread_mutex_unlock(&deque->queue_lock);
             return NULL;
         }
+        pthread_mutex_unlock(&deque->queue_lock);
 
     }
     jcb *prev = deque->tail_node;
@@ -290,9 +296,8 @@ jcb *GetNodeFromTail(Deque *deque) {
     }
     deque->tail_node = prev->prev;
     prev->prev = prev->next = NULL;
-    // deque->size--;
-    // atomicDecrement(&(deque->size));
-    pthread_mutex_unlock(&deque->queue_lock);
+
+    // pthread_mutex_unlock(&deque->queue_lock);
 
     return prev;
 }
@@ -303,7 +308,7 @@ jcb *GetNodeFromHead(Deque *deque) {
     pthread_mutex_lock(&deque->queue_lock);
     atomicIncrement(&(deque->H));
     if (deque->H > deque->T) {
-        /* empty list*/
+        /* too few elements*/
         atomicDecrement(&(deque->H));
         pthread_mutex_unlock(&deque->queue_lock);
         return NULL;
@@ -318,16 +323,14 @@ jcb *GetNodeFromHead(Deque *deque) {
     }
     deque->head_node = head->next;
     head->prev = head->next = NULL;
-    // deque->size--;
     pthread_mutex_unlock(&deque->queue_lock);
-    // atomicDecrement(&(deque->size));
 
     return head;
 }
 
-// int isEmpty(Deque *deque) {
-// 	return deque->size == 0;
-// }
+int isEmpty(Deque *deque) {
+    return deque->T <= deque->H;
+}
 
 MemoryManager *MemoryManager_New() {
     MemoryManager *mm = (MemoryManager *) malloc(sizeof(MemoryManager));
@@ -347,15 +350,15 @@ void *AllocMemory(MemoryManager *m, int pagesize) {
         m->head = space;
 
         for (int i = 0; i < SEGMENT - 1; ++i) {
-            ((Block *) space)->next = (Block *)((char *)space + pagesize / SEGMENT);
-            space = ((Block *)space)->next;
+            ((Block *) space)->next = (Block *) ((char *) space + pagesize / SEGMENT);
+            space = ((Block *) space)->next;
         }
-        ((Block *)space)->next = NULL;
+        ((Block *) space)->next = NULL;
         m->availNum += SEGMENT;
     }
 
     space = m->head;
-    m->head = (void *)((Block *)space)->next;
+    m->head = (void *) ((Block *) space)->next;
     m->availNum--;
     return space;
 }
@@ -363,6 +366,6 @@ void *AllocMemory(MemoryManager *m, int pagesize) {
 void FreeMemory(MemoryManager *m, void *space, int pagesize) {
     // MemorySpace* s = MemorySpace_New(space, pagesize);
     m->availNum++;
-    ((Block *) space)->next = (Block *)m->head;
+    ((Block *) space)->next = (Block *) m->head;
     m->head = space;
 }

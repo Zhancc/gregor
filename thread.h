@@ -10,6 +10,7 @@
 /*global state data structure begin*/
 #define STACK_ALIGN(T, addr) ((T)(((uint32_t)(addr))&((uint32_t)~0x3)))
 
+
 typedef struct space {
     void *pointer;
     struct space *next;
@@ -33,7 +34,7 @@ void FreeMemory(MemoryManager *m, void *space, int pagesize);
 enum type {
     VOID = 0,
     // 4 Byte
-    SIGNED_CHAR,
+            SIGNED_CHAR,
     UNSIGNED_CHAR,
     CHAR,
     SHORT_INT,
@@ -46,11 +47,11 @@ enum type {
     PTR,
     FLOAT,
     // 8 Byte
-    LONG_LONG_INT,
+            LONG_LONG_INT,
     UNSIGNED_LONG_LONG_INT,
     DOUBLE,
     // 16 Byte
-    LONG_DOUBLE,
+            LONG_DOUBLE,
     STRUCT
 };
 /*
@@ -87,7 +88,7 @@ enum job_status {
 * 		return addr to job function
 */
 
-     RUNNING,
+            RUNNING,
 /*	stack:
 *		return addr before reschedule
 *		eflags
@@ -103,16 +104,16 @@ enum job_status {
 #define CURRENT_WORKER (&(mstate.worker_info[tid]))
 #define CURRENT   (CURRENT_WORKER->cur)
 /* control block of each job reside at the top address of its stack*/
+
 typedef struct jcb {
+    int join_counter;
     void *esp;
     void *mmap_addr;
     int mmap_size;
     enum job_status status;
     enum type ret_type;
     void *ret_ptr;
-    int join_counter;
     struct jcb *parent;
-    char fstate[512] __attribute__((aligned(16)));
     struct jcb *prev, *next;
 } jcb;
 
@@ -122,8 +123,8 @@ typedef struct deque {
     int size; //obsolete
     pthread_mutex_t queue_lock;
     pthread_cond_t queue_cond;
-    int H;
-    int T;
+    volatile int H;
+    volatile int T;
 } Deque;
 
 
@@ -171,18 +172,19 @@ struct mstate {
     Deque *deque;
 } mstate;
 
-
 Deque *Deque_new();
 
 void Deque_free(Deque *d);
 
 void AddNodeToTail(Deque *deque, jcb *job);
 
-// void AddNodeToHead(Deque* deque, jcb* job);
+void AddNodeToHead(Deque *deque, jcb *job);
+
 jcb *GetNodeFromTail(Deque *deque);
 
 jcb *GetNodeFromHead(Deque *deque);
-// int isEmpty(Deque *deque);
+
+int isEmpty(Deque *deque);
 
 /* the register global to store the tid. linked program must avoid using this register in compilation*/
 register int tid __asm__("ebx");
@@ -210,9 +212,16 @@ jcb *create_job(void *ret, enum type rt, void *return_ptr, void *routine, int nu
 
 void add_job_tail(Deque *deque, jcb *job);
 
-void atomicIncrement(int *m);
+#define atomicIncrement(m) \
+    asm volatile("lock incl %0"\
+                 : "+m" (*(m)));
 
-void atomicDecrement(int *m);
+#define atomicDecrement(m) \
+    asm volatile("lock decl %0"\
+                 : "+m" (*(m)));
+
+// void atomicIncrement(volatile int* m);
+// void atomicDecrement(volatile int* m);
 // void add_job_head(Deque* deque, jcb* job);
 /*wrapper of pthread begin*/
 void Pthread_create(pthread_t *restrict thread, const pthread_attr_t *restrict attr, void *(*start_routine)(void *),

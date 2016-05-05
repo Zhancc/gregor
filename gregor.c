@@ -6,6 +6,7 @@
 #include "gregor_error.h"
 #include "thread.h"
 #include "sched.h"
+
 #define SEGMENT 2
 
 /*
@@ -14,35 +15,36 @@
 * sizeof(arg1),arg1,sizeof(arg2),arg2.....
 * return negative if anything bad happens, or 0 otherwise
 */
+
 jcb *create_job(void *dummy_ret, enum type rt, void *return_ptr, void *routine, int num_arg, ...) {
     /* get a stack*/
     void *task_stack = AllocMemory(CURRENT_WORKER->mm,
-                                   pagesize);
+                                   pagesize);//mmap(NULL, pagesize, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_STACK, -1, 0 );
 
 
-    /* The end of stack is used as jcb */
-    /* Initialize job control block */
-    jcb *job = (jcb *) ((char *) task_stack + pagesize / SEGMENT) - 1;
+    /* the end of stack is used as jcb*/
+    /*initialize job control block*/
+    jcb *job = (jcb *) ((char *) task_stack + pagesize) - 1;
     job->mmap_addr = task_stack;
-    job->mmap_size = pagesize / SEGMENT;
+    job->mmap_size = pagesize;
     job->status = SPAWN;
     job->ret_type = rt;
     job->ret_ptr = return_ptr;
     job->join_counter = 0;
     job->parent = CURRENT;
     job->prev = job->next = NULL;
-    /* Update the join counter of the parrent */
+    /*update the join counter of the parrent*/
     if (CURRENT != NULL)
-        __sync_fetch_and_add(&(job->parent->join_counter), 1);
+            atomicIncrement(&(job->parent->join_counter));
 
-    /* Top of stack */
+    /* top of stack */
     int *top = STACK_ALIGN(int *, job);
     top = top - 1;
 
-    /* Enqueue-stack */
+    /* enqueue-stack */
     va_list varlist;
     va_start(varlist, num_arg);
-    va_list vlist = NULL;
+    va_list vlist;
     va_copy(vlist, varlist);
     int sum = 0;
     for (int i = 0; i < num_arg; i++) {
@@ -75,8 +77,6 @@ jcb *create_job(void *dummy_ret, enum type rt, void *return_ptr, void *routine, 
             case STRUCT:
                 sum += va_arg(varlist, int);
                 break;
-            default:
-                break;
         }
     }
     top = (void *) ((char *) top - sum);
@@ -90,7 +90,7 @@ jcb *create_job(void *dummy_ret, enum type rt, void *return_ptr, void *routine, 
             int arg_size = 0;
             float temp;
             switch (size) {
-                case VOID:
+                case VOID :
                     break;
                 case SIGNED_CHAR:
                 case UNSIGNED_CHAR:
@@ -103,25 +103,32 @@ jcb *create_job(void *dummy_ret, enum type rt, void *return_ptr, void *routine, 
                 case LONG_INT:
                 case UNSIGNED_LONG_INT:
                 case PTR:
-                    memcpy(dst, src, 4);
+                    *(void **) dst = *(void **) src;
+                    // memcpy(dst, src, 4);
                     dst += 4;
                     src += 4;
                     break;
                 case FLOAT:
                     temp = (float) (*(double *) src);
-                    memcpy(dst, &temp, 4);
+                    *(float *) dst = temp;
+                    // memcpy(dst, &temp, 4);
                     dst += 4;
                     src += 8;
                     break;
                 case LONG_LONG_INT:
                 case UNSIGNED_LONG_LONG_INT:
+                    *(unsigned long long int *) dst = *(unsigned long long int *) src;
+                    dst += 8;
+                    src += 8;
                 case DOUBLE:
-                    memcpy(dst, src, 8);
+                    *(double *) dst = *(double *) src;
+                    // memcpy(dst, src, 8);
                     dst += 8;
                     src += 8;
                     break;
                 case LONG_DOUBLE:
-                    memcpy(dst, src, sizeof(long double));
+                    *(long double *) dst = *(long double *) src;
+                    // memcpy(dst, src, sizeof(long double));
                     dst += sizeof(long double);
                     src += sizeof(long double);
                 case STRUCT:
@@ -129,8 +136,6 @@ jcb *create_job(void *dummy_ret, enum type rt, void *return_ptr, void *routine, 
                     memcpy(dst, src, arg_size);
                     dst += arg_size;
                     src += arg_size;
-                    break;
-                default:
                     break;
             }
         }
@@ -176,7 +181,7 @@ void set_next_job(jcb *job) {
 #warning: refinement: currently just enqueue the current work
 
 int __gregor_sync() {
-
+    CURRENT->status = SYNC;
     while (CURRENT->join_counter) {
         jcb *job = try_pick_work();
         if (!job) {
@@ -186,6 +191,7 @@ int __gregor_sync() {
         set_next_job(job);
         reschedule();
     }
+    CURRENT->status = RUNNING;
 
     return 1;
 }

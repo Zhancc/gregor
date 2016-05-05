@@ -12,11 +12,11 @@ spawn:
 reschedule:
 	# subl 	$512, %esp
 	# fxsave   (%esp)
-	call fstate_save
+	# call fstate_save
 reschedule_from_pthread:
-	pushf
-	pushl 	%ecx
-	pushl 	%edx
+	# pushf they are caller saved
+	# pushl 	%ecx
+	# pushl 	%edx
 	pushl	%ebp
 	pushl	%esi
 	pushl 	%edi
@@ -43,9 +43,9 @@ swicth_free_current:
 	popl %edi
 	popl %esi
 	popl %ebp
-	popl %edx
-	popl %ecx
-	popf
+	# popl %edx they are caller saved
+	# popl %ecx
+	# popf
 	ret
 .size swicth_free_current, .-swicth_free_current
 	
@@ -56,11 +56,11 @@ switch_context:
 	popl %edi
 	popl %esi
 	popl %ebp
-	popl %edx
-	popl %ecx
-	popf
+	# popl %edx they are caller saved
+	# popl %ecx
+	# popf
 	call do_reschedule_reset_current	
-	call fstate_restore
+	# call fstate_restore
 	ret
 switch_context_to_new:
 	movl 4(%esp), %esp
