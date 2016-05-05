@@ -5,7 +5,7 @@
 #include "sched.h"
 #include "init.h"
 
-#define SEGMENT 2
+#define SEGMENT 1
 
 typedef struct main_arg {
     void *p_esp;
@@ -347,6 +347,7 @@ void *AllocMemory(MemoryManager *m, int pagesize) {
             ((Block *) space)->next = (Block *)((char *)space + pagesize / SEGMENT);
             space = ((Block *)space)->next;
         }
+        ((Block *)space)->next = NULL;
         m->availNum += SEGMENT;
     }
 

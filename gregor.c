@@ -6,7 +6,7 @@
 #include "gregor_error.h"
 #include "thread.h"
 #include "sched.h"
-#define SEGMENT 2
+#define SEGMENT 1
 
 /*
 * the second argument being function ptr,
