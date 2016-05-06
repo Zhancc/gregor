@@ -172,7 +172,9 @@ void do_cleanup(unsigned int eax, unsigned int edx){
 		jcb* j = CURRENT->parent;
 		atomicDecrement(&(j->join_counter));
 		ret = j->join_counter;
-
+		if(ret == 0 && j->status == SYNC){
+			j->status = RUNNING;
+		}
 		if(ret<0){
 			__gregor_panic("join_counter incorrect");
 		}
@@ -318,7 +320,6 @@ jcb* GetNodeFromHead(Deque *deque) {
 		pthread_mutex_unlock(&deque->queue_lock);
 		return NULL;
 	}
-	
 	if (head->next == NULL) {
 		deque->tail_node = NULL;
 	} else {

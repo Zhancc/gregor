@@ -151,6 +151,7 @@ typedef struct wstate{
 *		edi
 */
 	MemoryManager* mm;
+	char __dummy[128];
 } wstate;
 
 // typedef struct node {
