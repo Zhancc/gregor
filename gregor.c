@@ -182,10 +182,17 @@ void set_next_job(jcb *job) {
 
 int __gregor_sync() {
     CURRENT->status = SYNC;
+    int fail_cnt = 0;
     while (CURRENT->join_counter) {
         jcb *job = try_pick_work();
         if (!job) {
-            usleep(1);
+        	fail_cnt++;
+        	if(fail_cnt < 3000)
+	            usleep(1);
+	        else{
+	        	usleep(5);
+	        	fail_cnt = 0;
+	        }
             continue;
         }
         set_next_job(job);

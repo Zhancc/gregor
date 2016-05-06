@@ -104,7 +104,7 @@ jcb *do_pick_work(int sync) {
     // node = GetNodeFromTail(CURRENT_WORKER->deque);
     // if(node)
     // 	return node;
-
+    int fail_cnt = 0;
     while (!node) {
         if (!isEmpty(CURRENT_WORKER->deque)) {
             node = GetNodeFromTail(CURRENT_WORKER->deque);
@@ -143,7 +143,13 @@ jcb *do_pick_work(int sync) {
             // 		}
             // 	}
             // }
-            usleep(1);
+            fail_cnt++;
+            if(fail_cnt < 3000)
+	            usleep(1);
+	        else{
+	        	usleep(5);
+	        	fail_cnt = 0;
+	        }
 
         } else {
             break;
@@ -172,7 +178,7 @@ jcb *try_pick_work() {
 }
 
 jcb *work_steal(int victim) {
-    if (!(mstate.worker_info[victim].setup)) {
+    if (!(mstate.worker_info[victim].setup) || isEmpty(mstate.worker_info[victim].deque)) {
         return NULL;
     }
 

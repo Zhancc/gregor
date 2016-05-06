@@ -91,9 +91,6 @@ enum job_status {
             RUNNING,
 /*	stack:
 *		return addr before reschedule
-*		eflags
-*		ecx
-*		edx
 *		ebp
 *		esi
 *		edi
@@ -118,11 +115,12 @@ typedef struct jcb {
 } jcb;
 
 typedef struct deque {
-    struct jcb *head_node;
-    struct jcb *tail_node;
+    jcb *head_node;
+    jcb *tail_node;
     int size; //obsolete
     pthread_mutex_t queue_lock;
     pthread_cond_t queue_cond;
+    
     volatile int H;
     volatile int T;
 } Deque;
@@ -154,14 +152,9 @@ typedef struct wstate {
 *		esi
 *		edi
 */
-<<<<<<< HEAD
 	MemoryManager* mm;
 	// char __dummy[128];
 }__attribute__ ((aligned (128))) wstate;
-=======
-    MemoryManager *mm;
-} wstate;
->>>>>>> 44d4c16a8c1e26bfee0d52e227b7f9df22bd1e6d
 
 // typedef struct node {
 //     jcb* job;
