@@ -74,9 +74,9 @@ jcb *create_job(void *dummy_ret, enum type rt, void *return_ptr, void *routine, 
             case LONG_DOUBLE:
                 sum += sizeof(long double);
                 break;
-            case STRUCT:
-                sum += va_arg(varlist, int);
-                break;
+            // case STRUCT:
+            //     sum += va_arg(varlist, int);
+            //     break;
         }
     }
     top = (void *) ((char *) top - sum);
@@ -131,12 +131,13 @@ jcb *create_job(void *dummy_ret, enum type rt, void *return_ptr, void *routine, 
                     // memcpy(dst, src, sizeof(long double));
                     dst += sizeof(long double);
                     src += sizeof(long double);
-                case STRUCT:
-                    arg_size = va_arg(vlist, int);
-                    memcpy(dst, src, arg_size);
-                    dst += arg_size;
-                    src += arg_size;
                     break;
+                // case STRUCT:
+                //     arg_size = va_arg(vlist, int);
+                //     memcpy(dst, src, arg_size);
+                //     dst += arg_size;
+                //     src += arg_size;
+                //     break;
             }
         }
     }
@@ -187,7 +188,7 @@ int __gregor_sync() {
         jcb *job = try_pick_work();
         if (!job) {
         	fail_cnt++;
-        	if(fail_cnt < 3000)
+        	if(fail_cnt < 300)
 	            usleep(1);
 	        else{
 	        	usleep(5);
@@ -195,6 +196,8 @@ int __gregor_sync() {
 	        }
             continue;
         }
+        
+
         set_next_job(job);
         reschedule();
     }

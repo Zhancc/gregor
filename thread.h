@@ -52,7 +52,7 @@ enum type {
     DOUBLE,
     // 16 Byte
             LONG_DOUBLE,
-    STRUCT
+    // STRUCT
 };
 /*
 enum arg_type{
@@ -119,7 +119,6 @@ typedef struct deque {
     jcb *tail_node;
     int size; //obsolete
     pthread_mutex_t queue_lock;
-    pthread_cond_t queue_cond;
     
     volatile int H;
     volatile int T;
@@ -177,7 +176,7 @@ void Deque_free(Deque *d);
 
 void AddNodeToTail(Deque *deque, jcb *job);
 
-void AddNodeToHead(Deque *deque, jcb *job);
+// void AddNodeToHead(Deque *deque, jcb *job);
 
 jcb *GetNodeFromTail(Deque *deque);
 

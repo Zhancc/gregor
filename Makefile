@@ -3,8 +3,8 @@
 CC=gcc
 # Hey!, I am comment number 2. I want to say that CFLAGS will be the
 # options I'll pass to the compiler.
-CFLAGS= -g -m32 -c -Wall -std=gnu99 #-O3
-LDFLAGS= -m32 -shared -ldl -lpthread 
+CFLAGS= -g -m32 -c -Wall -std=gnu99 -O3 #-finline-functions
+LDFLAGS= -m32 -shared -ldl -lpthread -O3
 
 # libgregor.so: gregor_error.o gregor.o thread.o closure.o
 # 	$(CC) gregor_error.o thread.o gregor.o closure.o -o libgregor.so $(LDFLAGS)

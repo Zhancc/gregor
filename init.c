@@ -78,7 +78,7 @@ static int linux_get_affinity_count ()
 void init(void) {
     NUM_PROCESSOR = sysconf(_SC_NPROCESSORS_ONLN);
     pagesize = getpagesize();
-    mem_op = 0;
+    // mem_op = 0;
     //NUM_PROCESSOR = 33;
     if (NUM_PROCESSOR < 0) {
         __gregor_error("Initialization fail");
@@ -99,9 +99,9 @@ void init(void) {
 
 
 void fini(void) {
-    for (int i = 0; i < NUM_WORKER; i++) {
-        printf("tid %d: num %d\n", i, mstate.worker_info[i].num_work);
-    }
+    // for (int i = 0; i < NUM_WORKER; i++) {
+    //     printf("tid %d: num %d\n", i, mstate.worker_info[i].num_work);
+    // }
 //	free(mstate.worker_info);
 //	Deque_free(mstate.deque);
 }
